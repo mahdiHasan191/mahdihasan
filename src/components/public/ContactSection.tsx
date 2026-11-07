@@ -69,6 +69,9 @@ export const ContactSection: React.FC = () => {
       });
 
       if (result.success) {
+        if (result.error === 'saved_email_failed') {
+          setErrorMessage('Your message was saved, but the email alert could not be sent. You can still contact me directly by email or WhatsApp.');
+        }
         setSuccess(true);
         setFormData({
           name: '',
@@ -229,7 +232,7 @@ export const ContactSection: React.FC = () => {
             <div className="p-8 bg-slate-900/60 border border-slate-800 rounded-2xl relative">
               <h3 className="text-xl font-bold text-white mb-2">Send a Direct Message</h3>
               <p className="text-xs text-slate-400 mb-6">
-                Fill in the details below and your message will be dispatched directly to my inbox and inquiry tracker.
+                Fill in the details below. Your message will be saved to the inquiry tracker and an email notification will be sent when email delivery is configured.
               </p>
 
               {success ? (
@@ -239,8 +242,11 @@ export const ContactSection: React.FC = () => {
                   </div>
                   <h4 className="text-lg font-bold text-white">Inquiry Received Successfully!</h4>
                   <p className="text-sm text-slate-300 max-w-md mx-auto">
-                    Thank you for reaching out. I have received your request and will get back to you shortly.
+                    Thank you for reaching out. Your request has been saved. I will get back to you shortly.
                   </p>
+                  {errorMessage && (
+                    <p role="alert" className="text-sm text-amber-300 max-w-md mx-auto">{errorMessage}</p>
+                  )}
                   <button
                     onClick={() => setSuccess(false)}
                     className="mt-4 px-4 py-2 text-xs font-semibold text-emerald-400 hover:text-emerald-300 border border-emerald-500/30 rounded-lg hover:bg-emerald-950/60 transition-colors"
