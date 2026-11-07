@@ -155,11 +155,10 @@ export const db = {
     const updated: Profile = { ...current, ...profile, updated_at: new Date().toISOString() };
 
     if (client) {
-      try {
-        const { error } = await client.from('profiles').upsert(updated);
-        if (error) console.error('Supabase profile update error:', error);
-      } catch (err) {
-        console.error('Supabase profile update failed:', err);
+      const { error } = await client.from('profiles').upsert(updated);
+      if (error) {
+        console.error('Supabase profile update error:', error);
+        throw new Error(`Could not save profile changes to the cloud: ${error.message}`);
       }
     }
     setLocalData(STORAGE_KEYS.PROFILE, updated);
@@ -615,43 +614,32 @@ export const db = {
   async submitInquiry(
     inquiry: Omit<ContactInquiry, 'id' | 'status' | 'created_at'>
   ): Promise<{ success: boolean; id: string; error?: string }> {
-    const newRecord: ContactInquiry = {
-      id: 'inq-' + Date.now(),
-      ...inquiry,
-      status: 'new',
-      created_at: new Date().toISOString(),
-    };
-
     const client = getSupabase();
-    if (client) {
-      try {
-        const { data, error } = await client.from('contact_inquiries').insert([
-          {
-            name: inquiry.name,
-            email: inquiry.email,
-            phone: inquiry.phone || null,
-            company: inquiry.company || null,
-            service_interest: inquiry.service_interest || null,
-            message: inquiry.message,
-            status: 'new',
-          },
-        ]).select('id').single();
-
-        if (error) {
-          console.error('Supabase insert inquiry failed:', error);
-        } else if (data?.id) {
-          newRecord.id = data.id;
-        }
-      } catch (err: any) {
-        console.error('Supabase contact inquiry exception:', err);
-      }
+    if (!client) {
+      throw new Error('The website is not connected to Supabase. Please try again later.');
     }
 
-    // Always mirror to local state so admin sees it immediately
-    const existing = getLocalData<ContactInquiry[]>(STORAGE_KEYS.INQUIRIES, []);
-    setLocalData(STORAGE_KEYS.INQUIRIES, [newRecord, ...existing]);
+    const { data, error } = await client.from('contact_inquiries').insert([{
+      name: inquiry.name,
+      email: inquiry.email,
+      phone: inquiry.phone || null,
+      company: inquiry.company || null,
+      service_interest: inquiry.service_interest || null,
+      message: inquiry.message,
+      status: 'new',
+    }]).select('id').single();
+    if (error) {
+      console.error('Supabase insert inquiry failed:', error);
+      throw new Error('Your message could not be saved. Please try again later.');
+    }
+    if (!data?.id) throw new Error('Your message could not be confirmed as saved.');
 
-    return { success: true, id: newRecord.id };
+    const { error: emailError } = await client.functions.invoke('send-contact-notification', { body: inquiry });
+    if (emailError) {
+      console.error('Contact email notification failed:', emailError);
+      return { success: true, id: data.id, error: 'saved_email_failed' };
+    }
+    return { success: true, id: data.id };
   },
 
   async updateInquiryStatus(id: string, status: ContactInquiry['status']): Promise<void> {
@@ -689,35 +677,30 @@ export const db = {
   // --- Supabase Storage File Upload ---
   async uploadFile(bucket: 'portfolio-images' | 'resumes', file: File): Promise<string> {
     const client = getSupabase();
-    const cleanFileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-
-    if (client) {
-      try {
-        const { data, error } = await client.storage.from(bucket).upload(cleanFileName, file, {
-          cacheControl: '3600',
-          upsert: true,
-        });
-
-        if (error) {
-          throw error;
-        }
-
-        const { data: publicUrlData } = client.storage.from(bucket).getPublicUrl(data.path);
-        if (publicUrlData?.publicUrl) {
-          return publicUrlData.publicUrl;
-        }
-      } catch (err) {
-        console.warn('Supabase storage upload failed, creating base64 data preview:', err);
-      }
+    if (!client) {
+      throw new Error('Supabase is not connected. Local-only images cannot be shared with other visitors.');
+    }
+    if (!file.type.startsWith('image/') && bucket === 'portfolio-images') {
+      throw new Error('Please choose a valid image file.');
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      throw new Error('The file is too large. Maximum upload size is 10 MB.');
     }
 
-    // Fallback: Read as base64 data URL
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = (e) => reject(e);
-      reader.readAsDataURL(file);
+    const cleanFileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+    const { data, error } = await client.storage.from(bucket).upload(cleanFileName, file, {
+      cacheControl: '3600',
+      upsert: true,
+      contentType: file.type || undefined,
     });
+    if (error) {
+      console.error('Supabase Storage upload failed:', error);
+      throw new Error(`Cloud upload failed: ${error.message}`);
+    }
+
+    const { data: publicUrlData } = client.storage.from(bucket).getPublicUrl(data.path);
+    if (!publicUrlData?.publicUrl) throw new Error('Upload succeeded but a public image URL could not be created.');
+    return publicUrlData.publicUrl;
   },
 
   // Reset all local demo data back to default initialData
