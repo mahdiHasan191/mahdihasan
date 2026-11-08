@@ -17,7 +17,9 @@ These are public client-side values, not service-role secrets. Never put a servi
 
 ## 2. Provision the Storage buckets
 
-Open Supabase → SQL Editor → New query, paste `supabase/fix-storage.sql`, and Run. This creates public-read buckets (`portfolio-images`, `resumes`) with authenticated writes. Public means uploaded media URLs can be viewed by anyone; do not store private documents in these buckets.
+The two public-read buckets (`portfolio-images`, `resumes`) have been created in the project. The site uploads each file into a folder named for the signed-in Supabase user's UID; Storage policies allow SELECT/INSERT/UPDATE only inside that user's own folder. Public means uploaded media URLs can be viewed by anyone; do not store private documents in these buckets.
+
+If you need to recreate the storage setup later, open Supabase → SQL Editor → New query, paste `supabase/fix-storage.sql`, and Run. Admin uploads must use a real Supabase Auth sign-in (not demo/local mode) so the UID-folder policy can validate the request.
 
 Also ensure the main database schema in `supabase/schema.sql` has been run, and add the authorized administrator under Supabase Authentication if not already configured. The SQL script creates tables and policies; it does not create an Auth account.
 
