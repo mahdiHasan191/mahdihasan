@@ -680,6 +680,10 @@ export const db = {
     if (!client) {
       throw new Error('Supabase is not connected. Local-only images cannot be shared with other visitors.');
     }
+    const { data: { user }, error: authError } = await client.auth.getUser();
+    if (authError || !user) {
+      throw new Error('Please sign in to Supabase before uploading shared media.');
+    }
     if (!file.type.startsWith('image/') && bucket === 'portfolio-images') {
       throw new Error('Please choose a valid image file.');
     }
@@ -688,7 +692,8 @@ export const db = {
     }
 
     const cleanFileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-    const { data, error } = await client.storage.from(bucket).upload(cleanFileName, file, {
+    const objectPath = `${user.id}/${cleanFileName}`;
+    const { data, error } = await client.storage.from(bucket).upload(objectPath, file, {
       cacheControl: '3600',
       upsert: true,
       contentType: file.type || undefined,
