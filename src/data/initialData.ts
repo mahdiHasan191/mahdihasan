@@ -9,6 +9,7 @@ import {
   Testimonial,
   SEOSettings,
   WebsiteSettings,
+  Achievement,
 } from '../types';
 
 export const initialProfile: Profile = {
@@ -23,8 +24,11 @@ export const initialProfile: Profile = {
   phone: '+8801639200615',
   facebook_url: 'https://www.facebook.com/mh.masum.79',
   linkedin_url: 'https://www.linkedin.com/in/mahdi-hasan-557b6a18b/',
-  github_url: 'https://github.com/mahdihasan',
+  github_url: 'https://github.com/mahdiHasan191',
   avatar_url: '', // Neutral placeholder until user uploads real photograph
+  avatar_link: 'https://www.linkedin.com/in/mahdi-hasan-557b6a18b/',
+  cover_url: '',
+  cover_link: '',
   resume_url: '',
 };
 
@@ -164,8 +168,8 @@ export const initialProjects: Project[] = [
     outcome: 'Demonstrated MCP tool orchestration, building an end-to-end interactive travel planning agent.',
     tech_stack: ['Model Context Protocol (MCP)', 'TypeScript', 'Node.js', 'LLM Tool Calling', 'REST APIs'],
     image_url: '/src/assets/images/project_mcp_travel_1793989326685.jpg',
-    live_url: 'https://github.com/mahdihasan',
-    github_url: 'https://github.com/mahdihasan',
+    live_url: 'https://github.com/mahdiHasan191',
+    github_url: 'https://github.com/mahdiHasan191',
     is_featured: true,
     is_published: true,
     display_order: 1,
@@ -183,8 +187,8 @@ export const initialProjects: Project[] = [
     outcome: 'Eliminated manual daily job searches by delivering automated real-time notifications to communication channels.',
     tech_stack: ['Python', 'n8n', 'Webhooks', 'Telegram API', 'Automation Workflows'],
     image_url: '/src/assets/images/project_linkedin_bot_1793989332840.jpg',
-    live_url: 'https://github.com/mahdihasan',
-    github_url: 'https://github.com/mahdihasan',
+    live_url: 'https://github.com/mahdiHasan191',
+    github_url: 'https://github.com/mahdiHasan191',
     is_featured: true,
     is_published: true,
     display_order: 2,
@@ -202,8 +206,8 @@ export const initialProjects: Project[] = [
     outcome: 'Replaced manual daily calculation routines with an automated closing summary for territory oversight.',
     tech_stack: ['Python', 'Excel', 'Google Sheets API', 'n8n', 'Data Automation'],
     image_url: '/src/assets/images/project_sales_reporting_1793989333222.jpg',
-    live_url: 'https://github.com/mahdihasan',
-    github_url: 'https://github.com/mahdihasan',
+    live_url: 'https://github.com/mahdiHasan191',
+    github_url: 'https://github.com/mahdiHasan191',
     is_featured: true,
     is_published: true,
     display_order: 3,
@@ -221,8 +225,8 @@ export const initialProjects: Project[] = [
     outcome: 'Transformed manual spreadsheet formatting into a one-click automated cleaning process.',
     tech_stack: ['Python', 'OpenPyXL', 'Pandas', 'Excel Data Cleaning'],
     image_url: '/src/assets/images/sales_fmcg_hero_1793989324459.jpg',
-    live_url: 'https://github.com/mahdihasan',
-    github_url: 'https://github.com/mahdihasan',
+    live_url: 'https://github.com/mahdiHasan191',
+    github_url: 'https://github.com/mahdiHasan191',
     is_featured: false,
     is_published: true,
     display_order: 4,
@@ -240,8 +244,8 @@ export const initialProjects: Project[] = [
     outcome: 'Established a consistent, automated mechanism for gathering, validating, and organizing targeted prospect datasets.',
     tech_stack: ['Apify', 'n8n', 'Web Scraping', 'Webhooks', 'Google Sheets API'],
     image_url: '/src/assets/images/project_linkedin_bot_1793989332840.jpg',
-    live_url: 'https://github.com/mahdihasan',
-    github_url: 'https://github.com/mahdihasan',
+    live_url: 'https://github.com/mahdiHasan191',
+    github_url: 'https://github.com/mahdiHasan191',
     is_featured: true,
     is_published: true,
     display_order: 5,
@@ -516,3 +520,43 @@ export const initialSkills: Skill[] = [
 
 // No fabricated testimonials. Keep honest note that references are available on request.
 export const initialTestimonials: Testimonial[] = [];
+
+// Verified Professional Achievements Gallery
+export const initialAchievements: Achievement[] = [
+  {
+    id: 'ach-1',
+    title: 'Three-Time First-Place Achievement in New Product Sales',
+    category: 'FMCG Sales Operations',
+    date: 'Three-Time Top Performer',
+    description:
+      'Recognized for securing 1st place in new product sales across three separate product launches. Led territory-wide distribution, retail shelf presence, and distributor sales mobilization in the Dhaka North territory.',
+    image_url: '/src/assets/images/achievement_fmcg_award_1794064286077.jpg',
+    link_url: 'https://www.linkedin.com/in/mahdi-hasan-557b6a18b/',
+    display_order: 1,
+    is_published: true,
+  },
+  {
+    id: 'ach-2',
+    title: 'Territory Target Attainment (~100% Target Achievement)',
+    category: 'Target Delivery & Operations',
+    date: '6+ Years Sustained Record',
+    description:
+      'Delivered an approximate 100% average target achievement across 6+ years as Sales Officer in Dhaka North territory, actively managing one distributor and supervising a route-to-market team of five van pullers.',
+    image_url: '/src/assets/images/achievement_sales_certificate_1794064288795.jpg',
+    link_url: 'https://www.linkedin.com/in/mahdi-hasan-557b6a18b/',
+    display_order: 2,
+    is_published: true,
+  },
+  {
+    id: 'ach-3',
+    title: 'Dhaka North Territory ~9% Yearly Business Growth',
+    category: 'Distributor Leadership & Business Growth',
+    date: 'Annual Growth Distinction',
+    description:
+      'Drove consistent ~9% yearly business expansion across the Dhaka North sales territory by optimizing distributor inventory flow, secondary sales cadence, and retail trade relationships.',
+    image_url: '/src/assets/images/achievement_territory_recognition_1794064288116.jpg',
+    link_url: 'https://www.linkedin.com/in/mahdi-hasan-557b6a18b/',
+    display_order: 3,
+    is_published: true,
+  },
+];

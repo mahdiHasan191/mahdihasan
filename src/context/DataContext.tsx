@@ -11,6 +11,7 @@ import {
   ContactInquiry,
   SEOSettings,
   WebsiteSettings,
+  Achievement,
 } from '../types';
 import { db } from '../lib/supabase';
 import {
@@ -24,6 +25,7 @@ import {
   initialCertifications,
   initialSkills,
   initialTestimonials,
+  initialAchievements,
 } from '../data/initialData';
 
 interface DataContextType {
@@ -38,8 +40,11 @@ interface DataContextType {
   certifications: Certification[];
   skills: Skill[];
   testimonials: Testimonial[];
+  achievements: Achievement[];
+  visitorCount: number;
   inquiries: ContactInquiry[];
   refreshData: () => Promise<void>;
+  refreshVisitorCount: () => Promise<void>;
   updateProfile: (data: Partial<Profile>) => Promise<void>;
   updateSettings: (data: Partial<WebsiteSettings>) => Promise<void>;
   updateSEO: (data: Partial<SEOSettings>) => Promise<void>;
@@ -57,6 +62,8 @@ interface DataContextType {
   deleteSkill: (id: string) => Promise<void>;
   saveTestimonial: (item: Testimonial) => Promise<void>;
   deleteTestimonial: (id: string) => Promise<void>;
+  saveAchievement: (achievement: Achievement) => Promise<void>;
+  deleteAchievement: (id: string) => Promise<void>;
   updateInquiryStatus: (id: string, status: ContactInquiry['status']) => Promise<void>;
   deleteInquiry: (id: string) => Promise<void>;
 }
@@ -75,7 +82,18 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [certifications, setCertifications] = useState<Certification[]>(initialCertifications);
   const [skills, setSkills] = useState<Skill[]>(initialSkills);
   const [testimonials, setTestimonials] = useState<Testimonial[]>(initialTestimonials);
+  const [achievements, setAchievements] = useState<Achievement[]>(initialAchievements);
+  const [visitorCount, setVisitorCount] = useState<number>(1420);
   const [inquiries, setInquiries] = useState<ContactInquiry[]>([]);
+
+  const refreshVisitorCount = useCallback(async () => {
+    try {
+      const count = await db.getVisitorCount();
+      setVisitorCount(count);
+    } catch (err) {
+      console.warn('Error refreshing visitor count:', err);
+    }
+  }, []);
 
   const refreshData = useCallback(async () => {
     try {
@@ -90,6 +108,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         crt,
         skl,
         tst,
+        ach,
+        vCount,
         inq,
       ] = await Promise.all([
         db.getProfile(),
@@ -102,6 +122,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         db.getCertifications(false),
         db.getSkills(false),
         db.getTestimonials(false),
+        db.getAchievements(false),
+        db.getVisitorCount(),
         db.getInquiries(),
       ]);
 
@@ -115,6 +137,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (crt) setCertifications(crt);
       if (skl) setSkills(skl);
       if (tst) setTestimonials(tst);
+      if (ach) setAchievements(ach);
+      if (vCount) setVisitorCount(vCount);
       if (inq) setInquiries(inq);
     } catch (err) {
       console.error('Error refreshing data:', err);
@@ -125,6 +149,28 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     refreshData();
+
+    // Increment visitor count once per browser session
+    try {
+      const hasTracked = sessionStorage.getItem('mahdi_session_tracked');
+      if (!hasTracked) {
+        sessionStorage.setItem('mahdi_session_tracked', 'true');
+        db.incrementVisitorCount().then((count) => setVisitorCount(count));
+      } else {
+        db.getVisitorCount().then((count) => setVisitorCount(count));
+      }
+    } catch {
+      db.incrementVisitorCount().then((count) => setVisitorCount(count));
+    }
+
+    // Subscribe to realtime visitor count updates
+    const unsubscribe = db.subscribeVisitorCount((newCount) => {
+      setVisitorCount(newCount);
+    });
+
+    return () => {
+      unsubscribe();
+    };
   }, [refreshData]);
 
   const updateProfile = async (data: Partial<Profile>) => {
@@ -212,6 +258,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await refreshData();
   };
 
+  const saveAchievement = async (achievement: Achievement) => {
+    await db.saveAchievement(achievement);
+    await refreshData();
+  };
+
+  const deleteAchievement = async (id: string) => {
+    await db.deleteAchievement(id);
+    await refreshData();
+  };
+
   const updateInquiryStatus = async (id: string, status: ContactInquiry['status']) => {
     await db.updateInquiryStatus(id, status);
     setInquiries((prev) =>
@@ -238,8 +294,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         certifications,
         skills,
         testimonials,
+        achievements,
+        visitorCount,
         inquiries,
         refreshData,
+        refreshVisitorCount,
         updateProfile,
         updateSettings,
         updateSEO,
@@ -257,6 +316,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         deleteSkill,
         saveTestimonial,
         deleteTestimonial,
+        saveAchievement,
+        deleteAchievement,
         updateInquiryStatus,
         deleteInquiry,
       }}

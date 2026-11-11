@@ -1,12 +1,14 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type AppRoute = 'home' | 'admin_login' | 'admin_dashboard';
+export type AppRoute = 'home' | 'credentials' | 'admin_login' | 'admin_dashboard';
 
 interface NavigationContextType {
   route: AppRoute;
   activeAdminTab: string;
+  activeCredentialsTab?: 'experience' | 'education' | 'achievements' | 'certifications';
   navigateTo: (route: AppRoute, adminTab?: string) => void;
   setActiveAdminTab: (tab: string) => void;
+  setActiveCredentialsTab: (tab: 'experience' | 'education' | 'achievements' | 'certifications') => void;
   scrollToSection: (sectionId: string) => void;
 }
 
@@ -25,12 +27,16 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       const tab = parts[1] || 'dashboard';
       return { route: 'admin_dashboard', tab };
     }
+    if (hash === 'credentials' || hash.startsWith('credentials') || hash === 'experience' || hash === 'education' || hash === 'achievements') {
+      return { route: 'credentials', tab: 'experience' };
+    }
     return { route: 'home', tab: 'dashboard' };
   };
 
   const initial = getInitialRoute();
   const [route, setRoute] = useState<AppRoute>(initial.route);
   const [activeAdminTab, setActiveAdminTab] = useState<string>(initial.tab);
+  const [activeCredentialsTab, setActiveCredentialsTab] = useState<'experience' | 'education' | 'achievements' | 'certifications'>('experience');
 
   useEffect(() => {
     const handlePopState = () => {
@@ -55,12 +61,21 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       window.history.pushState({}, '', `/admin#${tab}`);
     } else if (newRoute === 'admin_login') {
       window.history.pushState({}, '', '/admin/login');
+    } else if (newRoute === 'credentials') {
+      window.history.pushState({}, '', '/#credentials');
     } else {
       window.history.pushState({}, '', '/');
     }
   };
 
   const scrollToSection = (sectionId: string) => {
+    if (sectionId === 'experience' || sectionId === 'education' || sectionId === 'achievements' || sectionId === 'certifications') {
+      setActiveCredentialsTab(sectionId as any);
+      navigateTo('credentials');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     if (route !== 'home') {
       navigateTo('home');
       setTimeout(() => {
@@ -82,8 +97,10 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       value={{
         route,
         activeAdminTab,
+        activeCredentialsTab,
         navigateTo,
         setActiveAdminTab,
+        setActiveCredentialsTab,
         scrollToSection,
       }}
     >

@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { useData } from '../../context/DataContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { Bot, Target, Briefcase, Megaphone, Check } from 'lucide-react';
 import { SkillCategory } from '../../types';
 
 interface CategoryConfig {
   title: SkillCategory;
-  description: string;
+  translationKey: string;
+  descKey: string;
+  defaultDesc: string;
   icon: React.ElementType;
   accent: string;
   badgeBorder: string;
@@ -14,28 +17,36 @@ interface CategoryConfig {
 const CATEGORY_CONFIGS: CategoryConfig[] = [
   {
     title: 'AI Automation',
-    description: 'n8n workflows, Model Context Protocol (MCP), and API event bridges.',
+    translationKey: 'skills.cat_ai',
+    descKey: 'skills.cat_ai_desc',
+    defaultDesc: 'n8n workflows, Model Context Protocol (MCP), and API event bridges.',
     icon: Bot,
     accent: 'text-cyan-400',
     badgeBorder: 'border-cyan-500/30 text-cyan-300 bg-cyan-950/30',
   },
   {
     title: 'Lead Generation',
-    description: 'Targeted web scraping with Apify, prospect collection, and data processing.',
+    translationKey: 'skills.cat_lead',
+    descKey: 'skills.cat_lead_desc',
+    defaultDesc: 'Targeted web scraping with Apify, prospect collection, and data processing.',
     icon: Target,
     accent: 'text-purple-400',
     badgeBorder: 'border-purple-500/30 text-purple-300 bg-purple-950/30',
   },
   {
     title: 'Sales',
-    description: '6+ years FMCG sales, distributor management, and daily sales reporting.',
+    translationKey: 'skills.cat_sales',
+    descKey: 'skills.cat_sales_desc',
+    defaultDesc: '6+ years FMCG sales, distributor management, and daily sales reporting.',
     icon: Briefcase,
     accent: 'text-cyan-400',
     badgeBorder: 'border-cyan-500/30 text-cyan-300 bg-cyan-950/30',
   },
   {
     title: 'Digital Marketing',
-    description: 'Search marketing, paid social advertising, content, and marketing automation.',
+    translationKey: 'skills.cat_marketing',
+    descKey: 'skills.cat_marketing_desc',
+    defaultDesc: 'Search marketing, paid social advertising, content, and marketing automation.',
     icon: Megaphone,
     accent: 'text-purple-400',
     badgeBorder: 'border-purple-500/30 text-purple-300 bg-purple-950/30',
@@ -44,6 +55,7 @@ const CATEGORY_CONFIGS: CategoryConfig[] = [
 
 export const SkillsSection: React.FC = () => {
   const { skills } = useData();
+  const { t, formatNumber, language } = useLanguage();
   const [selectedFilter, setSelectedFilter] = useState<string>('All');
 
   const published = skills.filter((s) => s.is_published);
@@ -52,6 +64,14 @@ export const SkillsSection: React.FC = () => {
     ? CATEGORY_CONFIGS
     : CATEGORY_CONFIGS.filter((c) => c.title === selectedFilter);
 
+  const filterOptions: { key: string; label: string }[] = [
+    { key: 'All', label: t('portfolio.filter_all', 'All') },
+    { key: 'AI Automation', label: t('skills.cat_ai', 'AI Automation') },
+    { key: 'Lead Generation', label: t('skills.cat_lead', 'Lead Generation') },
+    { key: 'Sales', label: t('skills.cat_sales', 'Sales') },
+    { key: 'Digital Marketing', label: t('skills.cat_marketing', 'Digital Marketing') },
+  ];
+
   return (
     <section id="skills" className="py-24 bg-slate-950 border-t border-slate-900 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -59,29 +79,29 @@ export const SkillsSection: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
             <div className="text-xs font-semibold tracking-wider uppercase text-cyan-400 mb-2">
-              05. Core Competencies
+              {t('skills.kicker', '06. Technical & Operational Toolkit')}
             </div>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-              Skills & Operational Capabilities
+              {t('skills.headline', 'Core Skills & Domain Expertise')}
             </h2>
             <p className="mt-3 text-base text-slate-300 max-w-2xl">
-              Practical capabilities structured across AI automation, lead generation, on-ground sales execution, and digital growth marketing.
+              {t('skills.subtitle', 'Categorized competencies combining modern AI automation with practical FMCG sales execution and performance marketing.')}
             </p>
           </div>
 
           {/* Category Filter Controls */}
           <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-900 border border-slate-800 rounded-xl shrink-0">
-            {['All', 'AI Automation', 'Lead Generation', 'Sales', 'Digital Marketing'].map((cat) => (
+            {filterOptions.map((opt) => (
               <button
-                key={cat}
-                onClick={() => setSelectedFilter(cat)}
+                key={opt.key}
+                onClick={() => setSelectedFilter(opt.key)}
                 className={`px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all ${
-                  selectedFilter === cat
+                  selectedFilter === opt.key
                     ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 shadow-sm'
                     : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                 }`}
               >
-                {cat}
+                {opt.label}
               </button>
             ))}
           </div>
@@ -105,8 +125,10 @@ export const SkillsSection: React.FC = () => {
                       <Icon className="w-6 h-6" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-white">{catConfig.title}</h3>
-                      <p className="text-xs text-slate-400 mt-0.5">{catConfig.description}</p>
+                      <h3 className="text-xl font-bold text-white">
+                        {t(catConfig.translationKey, catConfig.title)}
+                      </h3>
+                      <p className="text-xs text-slate-400 mt-0.5">{catConfig.defaultDesc}</p>
                     </div>
                   </div>
 
@@ -149,8 +171,13 @@ export const SkillsSection: React.FC = () => {
                 </div>
 
                 <div className="pt-6 border-t border-slate-800/60 mt-6 flex items-center justify-between text-xs text-slate-400">
-                  <span>{categorySkills.length} Capabilities Documented</span>
-                  <span className="font-mono text-cyan-400">Verified Skillset</span>
+                  <span>
+                    {formatNumber(categorySkills.length)}{' '}
+                    {language === 'bn' ? 'টি দক্ষতা লিপিবদ্ধ' : 'Capabilities Documented'}
+                  </span>
+                  <span className="font-mono text-cyan-400">
+                    {language === 'bn' ? 'যাচাইকৃত দক্ষতা' : 'Verified Skillset'}
+                  </span>
                 </div>
               </div>
             );

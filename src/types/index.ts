@@ -14,6 +14,9 @@ export interface Profile {
   linkedin_url: string;
   github_url: string;
   avatar_url: string;
+  avatar_link?: string;
+  cover_url?: string;
+  cover_link?: string;
   resume_url: string;
   updated_at?: string;
 }
@@ -43,6 +46,7 @@ export interface Project {
   outcome?: string;
   tech_stack: string[];
   image_url: string;
+  link_url?: string;
   live_url?: string;
   github_url?: string;
   is_featured: boolean;
@@ -147,4 +151,17 @@ export interface WebsiteSettings {
   stat_awards: string;
   cta_primary_text: string;
   cta_secondary_text: string;
+}
+
+export interface Achievement {
+  id: string;
+  title: string;
+  category: string;
+  date: string;
+  description: string;
+  image_url: string;
+  link_url?: string;
+  display_order: number;
+  is_published: boolean;
+  created_at?: string;
 }

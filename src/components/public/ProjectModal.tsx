@@ -58,15 +58,36 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
 
         {/* Scrollable Content */}
         <div className="p-6 sm:p-8 space-y-6 overflow-y-auto">
-          {/* Project Preview Image */}
+          {/* Project Preview Image with Hyperlink */}
           {project.image_url && (
-            <div className="rounded-xl overflow-hidden border border-slate-800 aspect-video bg-slate-950 max-h-80 w-full">
-              <img
-                src={project.image_url}
-                alt={project.title}
-                referrerPolicy="no-referrer"
-                className="w-full h-full object-cover object-center"
-              />
+            <div className="rounded-xl overflow-hidden border border-slate-800 aspect-video bg-slate-950 max-h-80 w-full relative group">
+              {(project.link_url || project.live_url) ? (
+                <a
+                  href={project.link_url || project.live_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full h-full cursor-pointer relative"
+                  title="Click image to open project hyperlink"
+                >
+                  <img
+                    src={project.image_url}
+                    alt={project.title}
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-cyan-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-xs font-semibold text-white">
+                    <span>Open Project Hyperlink</span>
+                    <ExternalLink className="w-4 h-4" />
+                  </div>
+                </a>
+              ) : (
+                <img
+                  src={project.image_url}
+                  alt={project.title}
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover object-center"
+                />
+              )}
             </div>
           )}
 
@@ -145,15 +166,15 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
               </a>
             )}
 
-            {project.live_url && (
+            {(project.link_url || project.live_url) && (
               <a
-                href={project.live_url}
+                href={project.link_url || project.live_url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-slate-950 bg-cyan-400 hover:bg-cyan-300 rounded-xl transition-colors"
               >
                 <ExternalLink className="w-4 h-4" />
-                <span>Live Repository / Demo</span>
+                <span>Open Project Hyperlink</span>
               </a>
             )}
           </div>

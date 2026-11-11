@@ -1,9 +1,11 @@
 import React from 'react';
 import { useData } from '../../context/DataContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { Award, CheckCircle, ExternalLink } from 'lucide-react';
 
 export const CertificationsSection: React.FC = () => {
   const { certifications } = useData();
+  const { t, language } = useLanguage();
   const published = certifications.filter((c) => c.is_published);
 
   return (
@@ -11,13 +13,15 @@ export const CertificationsSection: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mb-12">
           <div className="text-xs font-semibold tracking-wider uppercase text-cyan-400 mb-2">
-            07. Verified Accreditations
+            {t('certifications.kicker', '08. Professional Credentials')}
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-            Industry Certifications & Technical Credentials
+            {t('certifications.headline', 'Industry Certifications & Technical Credentials')}
           </h2>
           <p className="mt-3 text-base text-slate-300">
-            Validated capabilities across AI agent architectures, sales leadership, digital performance marketing, and data programming.
+            {language === 'bn'
+              ? 'এআই এজেন্ট আর্কিটেকচার, সেলস লিডারশিপ, ডিজিটাল পারফরম্যান্স মার্কেটিং এবং ডেটা প্রোগ্রামিংয়ের যাচাইকৃত সনদপত্র।'
+              : 'Validated capabilities across AI agent architectures, sales leadership, digital performance marketing, and data programming.'}
           </p>
         </div>
 
@@ -53,7 +57,7 @@ export const CertificationsSection: React.FC = () => {
               <div className="pt-4 border-t border-slate-800/80 mt-4 flex items-center justify-between">
                 <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-400">
                   <CheckCircle className="w-3.5 h-3.5" />
-                  <span>Verified Credential</span>
+                  <span>{language === 'bn' ? 'যাচাইকৃত সনদ' : 'Verified Credential'}</span>
                 </span>
                 {cert.credential_url && (
                   <a

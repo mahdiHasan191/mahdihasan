@@ -1,9 +1,11 @@
 import React from 'react';
 import { useData } from '../../context/DataContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { GraduationCap, Award, BookOpen } from 'lucide-react';
 
 export const EducationSection: React.FC = () => {
   const { educations } = useData();
+  const { t, formatNumber } = useLanguage();
   const published = educations.filter((e) => e.is_published);
 
   return (
@@ -11,13 +13,16 @@ export const EducationSection: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mb-12">
           <div className="text-xs font-semibold tracking-wider uppercase text-cyan-400 mb-2">
-            06. Academic Background
+            {t('education.kicker', '07. Academic Qualifications')}
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-            Academic Qualifications (BBA + MBA)
+            {t('education.headline', 'Education (BBA + MBA)')}
           </h2>
           <p className="mt-3 text-base text-slate-300">
-            Strategic business administration and marketing foundations providing the analytical rigor behind all automation and sales systems.
+            {t(
+              'about.edu_bba_mba_desc',
+              'Strategic business administration and marketing foundations providing the analytical rigor behind all automation and sales systems.'
+            )}
           </p>
         </div>
 

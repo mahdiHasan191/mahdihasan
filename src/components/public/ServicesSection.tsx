@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useData } from '../../context/DataContext';
 import { useNavigation } from '../../context/NavigationContext';
+import { useLanguage } from '../../context/LanguageContext';
 import {
   Bot,
   Target,
@@ -37,6 +38,7 @@ const iconMap: Record<string, React.ElementType> = {
 export const ServicesSection: React.FC = () => {
   const { services } = useData();
   const { scrollToSection } = useNavigation();
+  const { t, language } = useLanguage();
   const [filterCategory, setFilterCategory] = useState<string>('All');
 
   // Filter only published services
@@ -64,13 +66,13 @@ export const ServicesSection: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
             <div className="text-xs font-semibold tracking-wider uppercase text-cyan-400 mb-2">
-              02. High-Impact Solutions
+              {t('services.kicker')}
             </div>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-              Specialized Services & Workflows
+              {t('services.headline')}
             </h2>
             <p className="mt-3 text-base text-slate-300 max-w-2xl">
-              Specialized in AI Agent Development, Lead Generation Automation, Sales Reporting Automation, Email Automation, Business Process Automation, and Digital Marketing.
+              {t('services.subtitle')}
             </p>
           </div>
 

@@ -1,9 +1,13 @@
 import React from 'react';
 import { useData } from '../../context/DataContext';
+import { useNavigation } from '../../context/NavigationContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { Briefcase, Bot, GraduationCap, MapPin, CheckCircle2 } from 'lucide-react';
 
 export const About: React.FC = () => {
   const { profile } = useData();
+  const { navigateTo } = useNavigation();
+  const { t, language } = useLanguage();
 
   return (
     <section id="about" className="py-20 bg-slate-950 border-t border-slate-900 relative">
@@ -11,13 +15,13 @@ export const About: React.FC = () => {
         {/* Section Header */}
         <div className="max-w-3xl mb-16">
           <div className="text-xs font-semibold tracking-wider uppercase text-cyan-400 mb-2">
-            01. Background & Perspective
+            {t('about.kicker')}
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-            The Intersection of FMCG Sales & Intelligent Automation.
+            {t('about.headline')}
           </h2>
           <p className="mt-4 text-base sm:text-lg text-slate-300 leading-relaxed">
-            I combine 6+ years of on-ground FMCG sales operations, distributor supervision, and retail discipline with practical AI-powered automation and n8n workflows to solve actual operational bottlenecks.
+            {t('about.bio_lead')}
           </p>
         </div>
 
@@ -28,30 +32,30 @@ export const About: React.FC = () => {
             <div className="p-6 bg-slate-900/40 border border-slate-800 rounded-2xl">
               <h3 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
                 <Briefcase className="w-5 h-5 text-cyan-400" />
-                <span>6+ Years of FMCG Sales Execution</span>
+                <span>{t('about.pillar1_title')}</span>
               </h3>
               <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-                As a Sales Officer in the Dhaka North sales territory, I managed one primary distributor and supervised five van pullers to drive secondary retail distribution. Through disciplined route management and sales execution, I delivered approximately 9% yearly business growth, maintained an approximately 100% average target achievement rate, and earned three-time first-place achievement in new product sales.
+                {t('about.pillar1_desc')}
               </p>
             </div>
 
             <div className="p-6 bg-slate-900/40 border border-slate-800 rounded-2xl">
               <h3 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
                 <Bot className="w-5 h-5 text-purple-400" />
-                <span>AI Automation & Workflow Engineering</span>
+                <span>{t('about.pillar2_title')}</span>
               </h3>
               <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-                Having experienced the pain of manual end-of-day sales reconciliation, fragmented spreadsheets, and slow lead gathering, I specialize in building practical automations with n8n, Model Context Protocol (MCP), webhooks, and Apify. I build workflows that streamline lead generation, automate sales reporting, and eliminate repetitive tasks across business systems.
+                {t('about.pillar2_desc')}
               </p>
             </div>
 
             <div className="p-6 bg-slate-900/40 border border-slate-800 rounded-2xl">
               <h3 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
                 <GraduationCap className="w-5 h-5 text-cyan-400" />
-                <span>Academic Business Foundation</span>
+                <span>{t('about.edu_bba_mba')}</span>
               </h3>
               <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-                Holding both a Bachelor of Business Administration (BBA) and a Master of Business Administration (MBA), my technical workflows and commercial strategies are rooted in solid business principles, strategic planning, and operational feasibility.
+                {t('about.edu_bba_mba_desc')}
               </p>
             </div>
           </div>
@@ -118,6 +122,16 @@ export const About: React.FC = () => {
               <div className="flex justify-between items-center py-2">
                 <span className="text-slate-400">Core Specialty</span>
                 <span className="font-semibold text-cyan-400">FMCG Sales + AI Automation</span>
+              </div>
+
+              <div className="pt-3 border-t border-slate-800">
+                <button
+                  onClick={() => navigateTo('credentials', 'experience')}
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-semibold text-slate-950 bg-gradient-to-r from-cyan-400 to-cyan-300 hover:from-cyan-300 hover:to-cyan-200 rounded-xl transition-all shadow-md shadow-cyan-500/20"
+                >
+                  <span>{language === 'bn' ? 'সম্পূর্ণ অভিজ্ঞতা ও ডিগ্রি দেখুন' : 'View Full Experience & Degrees'}</span>
+                  <span className="text-[10px] font-mono">→</span>
+                </button>
               </div>
             </div>
           </div>

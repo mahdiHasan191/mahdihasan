@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useData } from '../../context/DataContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { Project } from '../../types';
 import { ProjectModal } from './ProjectModal';
 import { ArrowUpRight, Code, Sparkles, CheckCircle2 } from 'lucide-react';
 
 export const PortfolioSection: React.FC = () => {
   const { projects } = useData();
+  const { t, formatNumber } = useLanguage();
   const [filter, setFilter] = useState<'All' | 'Completed' | 'Learning'>('All');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
@@ -22,13 +24,13 @@ export const PortfolioSection: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
             <div className="text-xs font-semibold tracking-wider uppercase text-cyan-400 mb-2">
-              03. Featured Automations & Implementations
+              {t('portfolio.kicker')}
             </div>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-              AI Agents, Pipelines & Data Automation Systems
+              {t('portfolio.headline')}
             </h2>
             <p className="mt-3 text-base text-slate-300 max-w-2xl">
-              Every project represents a battle-tested automation engineered to solve real enterprise bottlenecks, eliminate manual data entry, and streamline operations.
+              {t('portfolio.subtitle')}
             </p>
           </div>
 
@@ -42,7 +44,7 @@ export const PortfolioSection: React.FC = () => {
                   : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
               }`}
             >
-              All ({publishedProjects.length})
+              {t('portfolio.filter_all')} ({formatNumber(publishedProjects.length)})
             </button>
             <button
               onClick={() => setFilter('Completed')}
@@ -52,7 +54,7 @@ export const PortfolioSection: React.FC = () => {
                   : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
               }`}
             >
-              Completed ({publishedProjects.filter((p) => p.category === 'Completed').length})
+              {t('portfolio.filter_completed')} ({formatNumber(publishedProjects.filter((p) => p.category === 'Completed').length)})
             </button>
             <button
               onClick={() => setFilter('Learning')}
@@ -62,7 +64,7 @@ export const PortfolioSection: React.FC = () => {
                   : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
               }`}
             >
-              Learning ({publishedProjects.filter((p) => p.category === 'Learning').length})
+              {t('portfolio.filter_learning')} ({formatNumber(publishedProjects.filter((p) => p.category === 'Learning').length)})
             </button>
           </div>
         </div>
@@ -103,8 +105,19 @@ export const PortfolioSection: React.FC = () => {
                     </span>
                   </div>
 
-                  <div className="absolute top-4 right-4 p-2 bg-slate-950/80 rounded-lg text-slate-300 group-hover:text-cyan-400 group-hover:bg-slate-900 transition-colors border border-slate-800">
-                    <ArrowUpRight className="w-4 h-4" />
+                  <div className="absolute top-4 right-4 flex items-center gap-1.5">
+                    {(project.link_url || project.live_url) && (
+                      <a
+                        href={project.link_url || project.live_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        title="Open direct project hyperlink"
+                        className="p-2 bg-slate-950/85 hover:bg-cyan-500 hover:text-slate-950 rounded-lg text-cyan-400 transition-colors border border-cyan-500/30 shadow-lg"
+                      >
+                        <ArrowUpRight className="w-4 h-4" />
+                      </a>
+                    )}
                   </div>
                 </div>
 

@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigation } from '../../context/NavigationContext';
 import { useAuth } from '../../context/AuthContext';
-import { Shield, Menu, X, ArrowUpRight } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
+import { LanguageSwitcher } from '../common/LanguageSwitcher';
+import { Shield, Menu, X, ArrowUpRight, GraduationCap } from 'lucide-react';
 
 export const Header: React.FC = () => {
-  const { scrollToSection, navigateTo } = useNavigation();
+  const { scrollToSection, navigateTo, route } = useNavigation();
   const { isAdmin } = useAuth();
+  const { t, language } = useLanguage();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const isBn = language === 'bn';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -26,63 +31,103 @@ export const Header: React.FC = () => {
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Top Bar Contract: 3 zones separated by gap-8 */}
+        {/* Top Bar: 3 zones */}
         <div className="flex items-center justify-between gap-8">
           {/* Zone 1: Single text element wordmark */}
           <button
-            onClick={() => scrollToSection('home')}
+            onClick={() => {
+              if (route !== 'home') navigateTo('home');
+              scrollToSection('home');
+            }}
             className="text-xl font-bold tracking-tight text-white hover:text-cyan-400 transition-colors whitespace-nowrap shrink-0 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 rounded"
           >
             Mahdi Hasan
           </button>
 
-          {/* Zone 2: 4-5 clean single-line text navigation links */}
-          <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-slate-300">
+          {/* Zone 2: Navigation Links */}
+          <nav className="hidden md:flex items-center gap-6 lg:gap-7 text-sm font-medium text-slate-300">
             <button
-              onClick={() => scrollToSection('about')}
+              onClick={() => {
+                if (route !== 'home') navigateTo('home');
+                scrollToSection('home');
+              }}
               className="hover:text-cyan-400 transition-colors whitespace-nowrap shrink-0 hover:underline underline-offset-8"
             >
-              About
+              {t('nav.home', 'Home')}
             </button>
             <button
-              onClick={() => scrollToSection('services')}
+              onClick={() => {
+                if (route !== 'home') navigateTo('home');
+                scrollToSection('about');
+              }}
               className="hover:text-cyan-400 transition-colors whitespace-nowrap shrink-0 hover:underline underline-offset-8"
             >
-              Services
+              {t('nav.about', 'About')}
             </button>
             <button
-              onClick={() => scrollToSection('portfolio')}
+              onClick={() => {
+                if (route !== 'home') navigateTo('home');
+                scrollToSection('services');
+              }}
               className="hover:text-cyan-400 transition-colors whitespace-nowrap shrink-0 hover:underline underline-offset-8"
             >
-              Portfolio
+              {t('nav.services', 'Services')}
             </button>
             <button
-              onClick={() => scrollToSection('experience')}
+              onClick={() => {
+                if (route !== 'home') navigateTo('home');
+                scrollToSection('portfolio');
+              }}
               className="hover:text-cyan-400 transition-colors whitespace-nowrap shrink-0 hover:underline underline-offset-8"
             >
-              Experience
+              {t('nav.portfolio', 'Portfolio')}
+            </button>
+
+            {/* Dedicated Experience & Degrees Tab */}
+            <button
+              onClick={() => navigateTo('credentials', 'experience')}
+              className={`hover:text-cyan-400 transition-colors whitespace-nowrap shrink-0 hover:underline underline-offset-8 flex items-center gap-1.5 ${
+                route === 'credentials' ? 'text-cyan-400 font-semibold' : ''
+              }`}
+            >
+              <span>{isBn ? 'Experience & Degrees' : 'Experience & Degrees'}</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.2 bg-cyan-950 border border-cyan-800 text-cyan-300 rounded">
+                BBA+MBA
+              </span>
+            </button>
+
+            <button
+              onClick={() => {
+                if (route !== 'home') navigateTo('home');
+                scrollToSection('skills');
+              }}
+              className="hover:text-cyan-400 transition-colors whitespace-nowrap shrink-0 hover:underline underline-offset-8"
+            >
+              {t('nav.skills', 'Skills')}
             </button>
             <button
-              onClick={() => scrollToSection('skills')}
+              onClick={() => {
+                if (route !== 'home') navigateTo('home');
+                scrollToSection('contact');
+              }}
               className="hover:text-cyan-400 transition-colors whitespace-nowrap shrink-0 hover:underline underline-offset-8"
             >
-              Skills
-            </button>
-            <button
-              onClick={() => scrollToSection('contact')}
-              className="hover:text-cyan-400 transition-colors whitespace-nowrap shrink-0 hover:underline underline-offset-8"
-            >
-              Contact
+              {t('nav.contact', 'Contact')}
             </button>
           </nav>
 
-          {/* Zone 3: 1 primary action + discreet admin entrance */}
+          {/* Zone 3: Language Switcher + 1 primary action + discreet admin entrance */}
           <div className="hidden md:flex items-center gap-3 shrink-0">
+            <LanguageSwitcher />
+
             <button
-              onClick={() => scrollToSection('contact')}
+              onClick={() => {
+                if (route !== 'home') navigateTo('home');
+                scrollToSection('contact');
+              }}
               className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-slate-950 bg-gradient-to-r from-cyan-400 to-cyan-300 hover:from-cyan-300 hover:to-cyan-200 rounded-lg shadow-sm shadow-cyan-500/20 transition-all hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap shrink-0"
             >
-              <span>Get in Touch</span>
+              <span>{t('nav.get_in_touch', 'Get in Touch')}</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
             </button>
 
@@ -96,8 +141,9 @@ export const Header: React.FC = () => {
             </button>
           </div>
 
-          {/* Mobile hamburger button */}
+          {/* Mobile hamburger button & Language switch */}
           <div className="flex md:hidden items-center gap-2">
+            <LanguageSwitcher />
             <button
               onClick={() => navigateTo(isAdmin ? 'admin_dashboard' : 'admin_login')}
               className="p-2 text-slate-400 hover:text-cyan-400 rounded-lg border border-slate-800"
@@ -119,69 +165,89 @@ export const Header: React.FC = () => {
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-slate-950/95 border-b border-slate-800 px-4 py-4 space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+            <span className="text-xs text-slate-400 font-mono">Language / ভাষা:</span>
+            <LanguageSwitcher />
+          </div>
           <button
             onClick={() => {
+              if (route !== 'home') navigateTo('home');
+              scrollToSection('home');
+              setMobileMenuOpen(false);
+            }}
+            className="block w-full text-left py-2 text-sm text-slate-300 hover:text-cyan-400"
+          >
+            {t('nav.home', 'Home')}
+          </button>
+          <button
+            onClick={() => {
+              if (route !== 'home') navigateTo('home');
               scrollToSection('about');
               setMobileMenuOpen(false);
             }}
             className="block w-full text-left py-2 text-sm text-slate-300 hover:text-cyan-400"
           >
-            About
+            {t('nav.about', 'About')}
           </button>
           <button
             onClick={() => {
+              if (route !== 'home') navigateTo('home');
               scrollToSection('services');
               setMobileMenuOpen(false);
             }}
             className="block w-full text-left py-2 text-sm text-slate-300 hover:text-cyan-400"
           >
-            Services
+            {t('nav.services', 'Services')}
           </button>
           <button
             onClick={() => {
+              if (route !== 'home') navigateTo('home');
               scrollToSection('portfolio');
               setMobileMenuOpen(false);
             }}
             className="block w-full text-left py-2 text-sm text-slate-300 hover:text-cyan-400"
           >
-            Portfolio
+            {t('nav.portfolio', 'Portfolio')}
           </button>
           <button
             onClick={() => {
-              scrollToSection('experience');
+              navigateTo('credentials', 'experience');
               setMobileMenuOpen(false);
             }}
-            className="block w-full text-left py-2 text-sm text-slate-300 hover:text-cyan-400"
+            className="block w-full text-left py-2 text-sm text-cyan-400 font-semibold"
           >
-            Experience
+            {isBn ? 'Experience & Degrees (BBA+MBA)' : 'Experience & Degrees (BBA+MBA)'}
           </button>
           <button
             onClick={() => {
+              if (route !== 'home') navigateTo('home');
               scrollToSection('skills');
               setMobileMenuOpen(false);
             }}
             className="block w-full text-left py-2 text-sm text-slate-300 hover:text-cyan-400"
           >
-            Skills
+            {t('nav.skills', 'Skills')}
           </button>
           <button
             onClick={() => {
+              if (route !== 'home') navigateTo('home');
               scrollToSection('contact');
               setMobileMenuOpen(false);
             }}
             className="block w-full text-left py-2 text-sm text-slate-300 hover:text-cyan-400"
           >
-            Contact
+            {t('nav.contact', 'Contact')}
           </button>
           <div className="pt-2 border-t border-slate-800">
             <button
               onClick={() => {
+                if (route !== 'home') navigateTo('home');
                 scrollToSection('contact');
                 setMobileMenuOpen(false);
               }}
               className="w-full text-center px-4 py-2.5 text-xs font-semibold text-slate-950 bg-cyan-400 rounded-lg"
             >
-              Get in Touch
+              {t('nav.get_in_touch', 'Get in Touch')}
             </button>
           </div>
         </div>

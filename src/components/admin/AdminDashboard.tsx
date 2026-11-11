@@ -37,6 +37,7 @@ import {
   AlertCircle,
   Menu,
   X,
+  Trophy,
 } from 'lucide-react';
 import {
   Service,
@@ -46,6 +47,7 @@ import {
   Education,
   Certification,
   Testimonial,
+  Achievement,
 } from '../../types';
 
 export const AdminDashboard: React.FC = () => {
@@ -79,6 +81,9 @@ export const AdminDashboard: React.FC = () => {
     testimonials,
     saveTestimonial,
     deleteTestimonial,
+    achievements,
+    saveAchievement,
+    deleteAchievement,
     inquiries,
     updateInquiryStatus,
     deleteInquiry,
@@ -103,6 +108,7 @@ export const AdminDashboard: React.FC = () => {
   const [editingEdu, setEditingEdu] = useState<Education | null>(null);
   const [editingCert, setEditingCert] = useState<Certification | null>(null);
   const [editingTestimonial, setEditingTestimonial] = useState<Testimonial | null>(null);
+  const [editingAchievement, setEditingAchievement] = useState<Achievement | null>(null);
 
   // File upload state
   const [uploading, setUploading] = useState(false);
@@ -121,6 +127,7 @@ export const AdminDashboard: React.FC = () => {
     { id: 'services', label: 'Services (12)', icon: Layers },
     { id: 'projects', label: 'Projects & Case Studies', icon: FolderGit2 },
     { id: 'experience', label: 'FMCG Experience', icon: Briefcase },
+    { id: 'achievements', label: `Achievements (${achievements.length})`, icon: Trophy },
     { id: 'education', label: 'Education (BBA+MBA)', icon: GraduationCap },
     { id: 'certifications', label: 'Certifications', icon: Award },
     { id: 'testimonials', label: 'Testimonials', icon: MessageSquare },
@@ -332,6 +339,24 @@ CREATE TABLE IF NOT EXISTS public.testimonials (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS public.achievements (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  category TEXT NOT NULL,
+  date TEXT NOT NULL,
+  description TEXT NOT NULL,
+  image_url TEXT NOT NULL,
+  display_order INT NOT NULL DEFAULT 0,
+  is_published BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.site_analytics (
+  id TEXT PRIMARY KEY DEFAULT 'main_counter',
+  total_visits BIGINT NOT NULL DEFAULT 1420,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS public.contact_inquiries (
   id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   name TEXT NOT NULL,
@@ -355,6 +380,8 @@ ALTER TABLE public.educations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.certifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.skills ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.testimonials ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.achievements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.site_analytics ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contact_inquiries ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Public profiles read" ON public.profiles FOR SELECT USING (true);
@@ -367,6 +394,9 @@ CREATE POLICY "Public educations read" ON public.educations FOR SELECT USING (is
 CREATE POLICY "Public certifications read" ON public.certifications FOR SELECT USING (is_published = true);
 CREATE POLICY "Public skills read" ON public.skills FOR SELECT USING (is_published = true);
 CREATE POLICY "Public testimonials read" ON public.testimonials FOR SELECT USING (is_published = true);
+CREATE POLICY "Public achievements read" ON public.achievements FOR SELECT USING (is_published = true);
+CREATE POLICY "Public site_analytics read" ON public.site_analytics FOR SELECT USING (true);
+CREATE POLICY "Public site_analytics upsert" ON public.site_analytics FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Public submit inquiry" ON public.contact_inquiries FOR INSERT WITH CHECK (true);
 
 CREATE POLICY "Admin full profiles" ON public.profiles FOR ALL TO authenticated USING (true) WITH CHECK (true);
@@ -379,6 +409,7 @@ CREATE POLICY "Admin full educations" ON public.educations FOR ALL TO authentica
 CREATE POLICY "Admin full certifications" ON public.certifications FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Admin full skills" ON public.skills FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Admin full testimonials" ON public.testimonials FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Admin full achievements" ON public.achievements FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO authenticated USING (true) WITH CHECK (true);
 `;
 
@@ -677,32 +708,111 @@ CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO auth
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Avatar Image URL</label>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">Avatar Image URL (Public Link or File)</label>
                   <input
                     type="text"
                     value={profile.avatar_url}
                     onChange={(e) => updateProfile({ avatar_url: e.target.value })}
+                    placeholder="https://... or upload below"
                     className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-cyan-400"
                   />
                 </div>
               </div>
 
-              {/* Image Upload Trigger */}
-              <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl">
-                <label className="block text-xs font-medium text-slate-300 mb-2">
+              {/* Avatar Hyperlink & Cover Banner Options */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">
+                    Avatar Image Hyperlink (Clicking avatar opens this link)
+                  </label>
+                  <input
+                    type="url"
+                    value={profile.avatar_link || ''}
+                    onChange={(e) => updateProfile({ avatar_link: e.target.value })}
+                    placeholder="https://..."
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-400 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">
+                    YouTube Cover Banner Hyperlink (Clicking banner opens this link)
+                  </label>
+                  <input
+                    type="url"
+                    value={profile.cover_link || ''}
+                    onChange={(e) => updateProfile({ cover_link: e.target.value })}
+                    placeholder="https://..."
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-400 font-mono"
+                  />
+                </div>
+              </div>
+
+              {/* YouTube-style Cover Banner Photo URL */}
+              <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">
+                    YouTube-style Cover Photo Banner URL (Wide Panoramic Header)
+                  </label>
+                  <input
+                    type="text"
+                    value={profile.cover_url || ''}
+                    onChange={(e) => updateProfile({ cover_url: e.target.value })}
+                    placeholder="https://... (direct public image link from Imgur, Cloudinary, GitHub, or Supabase)"
+                    className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white font-mono"
+                  />
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <div className="flex-1">
+                    <span className="text-[11px] text-slate-400 block mb-1">
+                      Or Upload Banner File (Supabase Storage):
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, (url) => updateProfile({ cover_url: url }))}
+                      className="text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-cyan-500/20 file:text-cyan-300 hover:file:bg-cyan-500/30"
+                    />
+                  </div>
+                  {profile.cover_url && (
+                    <img
+                      src={profile.cover_url}
+                      alt="Cover Preview"
+                      className="w-24 h-12 object-cover rounded-lg border border-slate-800"
+                    />
+                  )}
+                </div>
+              </div>
+
+              {/* Avatar Image Upload Trigger */}
+              <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
+                <label className="block text-xs font-medium text-slate-300 mb-1">
                   Upload New Avatar Photo (Supabase Storage)
                 </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleImageUpload(e, (url) => updateProfile({ avatar_url: url }))}
-                  className="text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-cyan-500/20 file:text-cyan-300 hover:file:bg-cyan-500/30"
-                />
+                <div className="flex items-center gap-4">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleImageUpload(e, (url) => updateProfile({ avatar_url: url }))}
+                    className="text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-cyan-500/20 file:text-cyan-300 hover:file:bg-cyan-500/30"
+                  />
+                  {profile.avatar_url && (
+                    <img
+                      src={profile.avatar_url}
+                      alt="Avatar Preview"
+                      className="w-10 h-10 object-cover rounded-full border border-cyan-500/50"
+                    />
+                  )}
+                </div>
+                <p className="text-[11px] text-slate-500">
+                  Tip: A direct public link (e.g., from Imgur, Cloudinary, GitHub raw, or Supabase public bucket) is instantly visible to all visitors on any device!
+                </p>
               </div>
 
               <button
                 type="submit"
-                className="px-5 py-2.5 text-xs font-semibold text-slate-950 bg-cyan-400 hover:bg-cyan-300 rounded-xl"
+                className="px-5 py-2.5 text-xs font-semibold text-slate-950 bg-cyan-400 hover:bg-cyan-300 rounded-xl shadow-md shadow-cyan-500/20 transition-all"
               >
                 Save Profile Changes
               </button>
@@ -1284,14 +1394,50 @@ CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO auth
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs text-slate-300 mb-1">Image URL</label>
+                    <label className="block text-xs text-slate-300 mb-1">Image URL (Public Link or Storage)</label>
                     <input
                       type="text"
                       value={editingProject.image_url}
                       onChange={(e) => setEditingProject({ ...editingProject, image_url: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white"
+                      placeholder="https://... (direct image link works on all devices)"
+                      className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-300 mb-1">
+                      Image Hyperlink (Clicking project image opens this link)
+                    </label>
+                    <input
+                      type="url"
+                      value={editingProject.link_url || ''}
+                      onChange={(e) => setEditingProject({ ...editingProject, link_url: e.target.value })}
+                      placeholder="https://..."
+                      className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs text-slate-300 mb-1">Live URL / Demo Link</label>
+                    <input
+                      type="url"
+                      value={editingProject.live_url || ''}
+                      onChange={(e) => setEditingProject({ ...editingProject, live_url: e.target.value })}
+                      placeholder="https://..."
+                      className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-300 mb-1">GitHub Repository URL</label>
+                    <input
+                      type="url"
+                      value={editingProject.github_url || ''}
+                      onChange={(e) => setEditingProject({ ...editingProject, github_url: e.target.value })}
+                      placeholder="https://github.com/..."
+                      className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white font-mono"
                     />
                   </div>
                   <div>
@@ -1305,20 +1451,33 @@ CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO auth
                           tech_stack: e.target.value.split(',').map((s) => s.trim()).filter(Boolean),
                         })
                       }
+                      placeholder="n8n, MCP, REST API"
                       className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white"
                     />
                   </div>
                 </div>
 
-                {/* Storage image upload trigger */}
-                <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl">
-                  <label className="block text-xs text-slate-300 mb-1">Upload Project Cover to Supabase Storage</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleImageUpload(e, (url) => setEditingProject({ ...editingProject, image_url: url }))}
-                    className="text-xs text-slate-400 file:mr-2 file:py-1 file:px-2.5 file:rounded file:border-0 file:text-xs file:bg-cyan-500/20 file:text-cyan-300"
-                  />
+                {/* Storage image upload trigger with preview */}
+                <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <label className="block text-xs text-slate-300 mb-1">Upload Project Cover to Supabase Storage</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, (url) => setEditingProject({ ...editingProject, image_url: url }))}
+                      className="text-xs text-slate-400 file:mr-2 file:py-1 file:px-2.5 file:rounded file:border-0 file:text-xs file:bg-cyan-500/20 file:text-cyan-300"
+                    />
+                    <p className="text-[10px] text-slate-500 mt-1">
+                      Tip: Direct public URLs (e.g. from GitHub, Imgur, Cloudinary) update on all devices immediately!
+                    </p>
+                  </div>
+                  {editingProject.image_url && (
+                    <img
+                      src={editingProject.image_url}
+                      alt="Project Preview"
+                      className="w-20 h-12 object-cover rounded-lg border border-slate-800"
+                    />
+                  )}
                 </div>
 
                 <div className="flex items-center gap-3 pt-2">
@@ -1746,6 +1905,290 @@ CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO auth
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* 11.5. ACHIEVEMENTS GALLERY MANAGEMENT TAB */}
+        {activeAdminTab === 'achievements' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-extrabold text-white">Achievement Gallery Management</h1>
+                <p className="text-sm text-slate-400 mt-1">
+                  Upload and manage your professional awards, sales plaques, certificates, and verified territory milestones.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setEditingAchievement({
+                    id: 'ach-' + Date.now(),
+                    title: '',
+                    category: 'FMCG Sales Operations',
+                    date: 'Recent Recognition',
+                    description: '',
+                    image_url: '/src/assets/images/achievement_fmcg_award_1794064286077.jpg',
+                    display_order: achievements.length + 1,
+                    is_published: true,
+                  });
+                }}
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-slate-950 bg-cyan-400 hover:bg-cyan-300 rounded-xl transition-all"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Achievement</span>
+              </button>
+            </div>
+
+            {/* Achievement Editing Form Modal */}
+            {editingAchievement && (
+              <div className="p-6 bg-slate-900 border border-cyan-500/40 rounded-2xl space-y-4 max-w-2xl">
+                <h3 className="text-base font-bold text-white">
+                  {achievements.some((a) => a.id === editingAchievement.id)
+                    ? 'Edit Achievement Record'
+                    : 'Add New Achievement to Gallery'}
+                </h3>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-300 mb-1">
+                      Achievement Title <span className="text-cyan-400">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={editingAchievement.title}
+                      onChange={(e) =>
+                        setEditingAchievement({ ...editingAchievement, title: e.target.value })
+                      }
+                      placeholder="e.g. Three-Time First-Place in New Product Sales"
+                      className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-slate-300 mb-1">Category</label>
+                    <input
+                      type="text"
+                      value={editingAchievement.category}
+                      onChange={(e) =>
+                        setEditingAchievement({ ...editingAchievement, category: e.target.value })
+                      }
+                      placeholder="e.g. FMCG Sales Operations"
+                      className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-400"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-300 mb-1">
+                      Date / Milestone Honor
+                    </label>
+                    <input
+                      type="text"
+                      value={editingAchievement.date}
+                      onChange={(e) =>
+                        setEditingAchievement({ ...editingAchievement, date: e.target.value })
+                      }
+                      placeholder="e.g. Three-Time Top Performer"
+                      className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-slate-300 mb-1">Display Order</label>
+                    <input
+                      type="number"
+                      value={editingAchievement.display_order}
+                      onChange={(e) =>
+                        setEditingAchievement({
+                          ...editingAchievement,
+                          display_order: parseInt(e.target.value, 10) || 1,
+                        })
+                      }
+                      className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-400"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">
+                    Verified Description & Context
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={editingAchievement.description}
+                    onChange={(e) =>
+                      setEditingAchievement({ ...editingAchievement, description: e.target.value })
+                    }
+                    placeholder="Describe the verified accomplishment, territory scope, or sales target achieved..."
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-400 resize-none"
+                  />
+                </div>
+
+                {/* Image URL & Upload */}
+                <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-300 mb-1">
+                        Achievement Award / Certificate Image URL
+                      </label>
+                      <input
+                        type="text"
+                        value={editingAchievement.image_url}
+                        onChange={(e) =>
+                          setEditingAchievement({ ...editingAchievement, image_url: e.target.value })
+                        }
+                        placeholder="Image URL or upload file below"
+                        className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-300 mb-1">
+                        Image Hyperlink (Clicking award image opens this link)
+                      </label>
+                      <input
+                        type="url"
+                        value={editingAchievement.link_url || ''}
+                        onChange={(e) =>
+                          setEditingAchievement({ ...editingAchievement, link_url: e.target.value })
+                        }
+                        placeholder="https://... (verification link, award post, or credential)"
+                        className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <span className="text-[11px] text-slate-400 block mb-1.5">
+                      Upload from Device (Supabase Storage bucket <code className="text-cyan-400">portfolio-images</code>):
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        handleImageUpload(e, (url) =>
+                          setEditingAchievement((prev) => (prev ? { ...prev, image_url: url } : null))
+                        )
+                      }
+                      disabled={uploading}
+                      className="text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-cyan-500/20 file:text-cyan-300 hover:file:bg-cyan-500/30"
+                    />
+                    {uploading && <span className="text-xs text-cyan-400 block mt-1">Uploading...</span>}
+                  </div>
+
+                  {editingAchievement.image_url && (
+                    <div className="pt-2 flex items-center gap-4">
+                      <img
+                        src={editingAchievement.image_url}
+                        alt="Preview"
+                        className="w-20 h-14 object-cover rounded-lg border border-slate-800 bg-slate-900"
+                      />
+                      <span className="text-[11px] text-slate-400">Image Preview Ready</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-3 pt-2">
+                  <button
+                    onClick={async () => {
+                      if (!editingAchievement.title.trim()) {
+                        alert('Please provide an achievement title.');
+                        return;
+                      }
+                      await saveAchievement(editingAchievement);
+                      setEditingAchievement(null);
+                      showSuccessBanner('Achievement saved successfully!');
+                    }}
+                    className="px-5 py-2.5 text-xs font-semibold text-slate-950 bg-cyan-400 hover:bg-cyan-300 rounded-xl"
+                  >
+                    Save Achievement
+                  </button>
+                  <button
+                    onClick={() => setEditingAchievement(null)}
+                    className="px-4 py-2.5 text-xs font-semibold text-slate-400 hover:text-white"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Achievements List */}
+            {achievements.length === 0 ? (
+              <div className="p-12 bg-slate-900 border border-slate-800 rounded-2xl text-center text-slate-400 text-sm">
+                No achievements recorded yet. Click "Add Achievement" to get started!
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {achievements.map((item) => (
+                  <div
+                    key={item.id}
+                    className="p-4 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col justify-between space-y-3"
+                  >
+                    <div className="flex items-start gap-4">
+                      <img
+                        src={item.image_url}
+                        alt={item.title}
+                        className="w-24 h-20 object-cover rounded-xl border border-slate-800 bg-slate-950 shrink-0"
+                      />
+                      <div className="space-y-1 flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-mono text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/40 truncate">
+                            {item.category}
+                          </span>
+                          <span className="text-[10px] text-slate-500 font-mono">{item.date}</span>
+                        </div>
+                        <h4 className="text-sm font-bold text-white truncate">{item.title}</h4>
+                        <p className="text-xs text-slate-400 line-clamp-2">{item.description}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
+                      <span className="text-[11px] font-mono text-slate-500">
+                        Order: {item.display_order}
+                      </span>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={async () => {
+                            await saveAchievement({ ...item, is_published: !item.is_published });
+                            showSuccessBanner('Toggled achievement visibility');
+                          }}
+                          className={`p-1.5 rounded-lg border ${
+                            item.is_published
+                              ? 'text-emerald-400 border-emerald-500/30 bg-emerald-950/20'
+                              : 'text-slate-500 border-slate-800'
+                          }`}
+                          title={item.is_published ? 'Published on website' : 'Hidden from public'}
+                        >
+                          {item.is_published ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                        </button>
+
+                        <button
+                          onClick={() => setEditingAchievement(item)}
+                          className="p-1.5 text-slate-400 hover:text-cyan-400 border border-slate-800 rounded-lg transition-colors"
+                          title="Edit"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                        </button>
+
+                        <button
+                          onClick={async () => {
+                            if (confirm(`Delete achievement "${item.title}"?`)) {
+                              await deleteAchievement(item.id);
+                              showSuccessBanner('Achievement deleted');
+                            }
+                          }}
+                          className="p-1.5 text-slate-400 hover:text-rose-400 border border-slate-800 rounded-lg transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

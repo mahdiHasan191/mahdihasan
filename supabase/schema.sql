@@ -17,6 +17,9 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   linkedin_url TEXT,
   github_url TEXT,
   avatar_url TEXT,
+  avatar_link TEXT,
+  cover_url TEXT,
+  cover_link TEXT,
   resume_url TEXT,
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -154,7 +157,27 @@ CREATE TABLE IF NOT EXISTS public.testimonials (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 11. Create Contact Inquiries Table
+-- 11. Create Achievements Gallery Table
+CREATE TABLE IF NOT EXISTS public.achievements (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  category TEXT NOT NULL,
+  date TEXT NOT NULL,
+  description TEXT NOT NULL,
+  image_url TEXT NOT NULL,
+  display_order INT NOT NULL DEFAULT 0,
+  is_published BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 12. Create Real-Time Site Analytics & Visitor Counter Table
+CREATE TABLE IF NOT EXISTS public.site_analytics (
+  id TEXT PRIMARY KEY DEFAULT 'main_counter',
+  total_visits BIGINT NOT NULL DEFAULT 1420,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 13. Create Contact Inquiries Table
 CREATE TABLE IF NOT EXISTS public.contact_inquiries (
   id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   name TEXT NOT NULL,
@@ -182,6 +205,8 @@ ALTER TABLE public.educations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.certifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.skills ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.testimonials ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.achievements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.site_analytics ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contact_inquiries ENABLE ROW LEVEL SECURITY;
 
 -- Public can SELECT published content
@@ -195,6 +220,9 @@ CREATE POLICY "Public educations read" ON public.educations FOR SELECT USING (is
 CREATE POLICY "Public certifications read" ON public.certifications FOR SELECT USING (is_published = true);
 CREATE POLICY "Public skills read" ON public.skills FOR SELECT USING (is_published = true);
 CREATE POLICY "Public testimonials read" ON public.testimonials FOR SELECT USING (is_published = true);
+CREATE POLICY "Public achievements read" ON public.achievements FOR SELECT USING (is_published = true);
+CREATE POLICY "Public site_analytics read" ON public.site_analytics FOR SELECT USING (true);
+CREATE POLICY "Public site_analytics upsert" ON public.site_analytics FOR ALL USING (true) WITH CHECK (true);
 
 -- Public can INSERT contact inquiries
 CREATE POLICY "Public submit inquiry" ON public.contact_inquiries FOR INSERT WITH CHECK (true);
@@ -210,6 +238,7 @@ CREATE POLICY "Admin full educations" ON public.educations FOR ALL TO authentica
 CREATE POLICY "Admin full certifications" ON public.certifications FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Admin full skills" ON public.skills FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Admin full testimonials" ON public.testimonials FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Admin full achievements" ON public.achievements FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- ==============================================================================

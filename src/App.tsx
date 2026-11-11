@@ -2,19 +2,19 @@ import React, { useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NavigationProvider, useNavigation } from './context/NavigationContext';
 import { DataProvider, useData } from './context/DataContext';
+import { LanguageProvider } from './context/LanguageContext';
 
 import { Header } from './components/public/Header';
 import { Hero } from './components/public/Hero';
 import { About } from './components/public/About';
 import { ServicesSection } from './components/public/ServicesSection';
 import { PortfolioSection } from './components/public/PortfolioSection';
-import { ExperienceSection } from './components/public/ExperienceSection';
 import { SkillsSection } from './components/public/SkillsSection';
-import { EducationSection } from './components/public/EducationSection';
-import { CertificationsSection } from './components/public/CertificationsSection';
 import { TestimonialsSection } from './components/public/TestimonialsSection';
 import { ContactSection } from './components/public/ContactSection';
 import { Footer } from './components/public/Footer';
+import { CredentialsPage } from './components/public/CredentialsPage';
+import { WhatsAppWidget } from './components/common/WhatsAppWidget';
 
 import { AdminLogin } from './components/admin/AdminLogin';
 import { AdminDashboard } from './components/admin/AdminDashboard';
@@ -24,17 +24,14 @@ const AppContent: React.FC = () => {
   const { isAdmin, loading: authLoading } = useAuth();
   const { seo } = useData();
 
-  // Keep a content-rich, no-JavaScript fallback visible until the public app is ready.
+  // Keep crawlable fallback until the public app is ready, and sync runtime SEO tags.
   useEffect(() => {
     const fallback = document.getElementById('seo-fallback');
     if (fallback) fallback.hidden = route !== 'home' || !authLoading;
   }, [authLoading, route]);
 
-  // Sync document head with dynamic SEO settings
   useEffect(() => {
-    if (seo?.meta_title) {
-      document.title = seo.meta_title;
-    }
+    if (seo?.meta_title) document.title = seo.meta_title;
     const updateMetaContent = (selector: string, content?: string) => {
       if (!content) return;
       const element = document.querySelector<HTMLMetaElement>(selector);
@@ -67,7 +64,21 @@ const AppContent: React.FC = () => {
     return <AdminDashboard />;
   }
 
-  // Public Landing Page
+  // Dedicated Credentials Tab / File View (FMCG Experience, Education, Achievements, Certifications)
+  if (route === 'credentials') {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200">
+        <Header />
+        <main className="pt-20">
+          <CredentialsPage />
+        </main>
+        <Footer />
+        <WhatsAppWidget />
+      </div>
+    );
+  }
+
+  // Streamlined Public Landing Page (Zero Clutter, Fast, Focused)
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200">
       <Header />
@@ -76,14 +87,12 @@ const AppContent: React.FC = () => {
         <About />
         <ServicesSection />
         <PortfolioSection />
-        <ExperienceSection />
         <SkillsSection />
-        <EducationSection />
-        <CertificationsSection />
         <TestimonialsSection />
         <ContactSection />
       </main>
       <Footer />
+      <WhatsAppWidget />
     </div>
   );
 };
@@ -93,7 +102,9 @@ export default function App() {
     <AuthProvider>
       <NavigationProvider>
         <DataProvider>
-          <AppContent />
+          <LanguageProvider>
+            <AppContent />
+          </LanguageProvider>
         </DataProvider>
       </NavigationProvider>
     </AuthProvider>
