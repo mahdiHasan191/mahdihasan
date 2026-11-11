@@ -43,11 +43,11 @@ export const initialWebsiteSettings: WebsiteSettings = {
 
 export const initialSEOSettings: SEOSettings = {
   id: 'seo-1',
-  meta_title: 'Mahdi Hasan | Sales & AI Automation Specialist | Dhaka, Bangladesh',
-  meta_description: 'I help businesses streamline lead generation, sales reporting, and business workflows through AI-powered automation and n8n.',
-  keywords: 'Mahdi Hasan, Sales & AI Automation Specialist, FMCG Sales, n8n, Lead Generation, Sales Reporting, Dhaka North, BBA, MBA',
-  og_title: 'Mahdi Hasan — Bridging Sales & AI Automation',
-  og_description: 'I help businesses streamline lead generation, sales reporting, and business workflows through AI-powered automation and n8n.',
+  meta_title: 'AI & n8n Automation Specialist | Mahdi Hasan',
+  meta_description: 'Mahdi Hasan builds AI agents and n8n automations for lead generation, sales reporting, and business workflows. Explore services, workflows, and projects.',
+  keywords: 'AI automation, n8n workflow automation, AI agents, lead generation automation, sales reporting automation, business process automation',
+  og_title: 'AI & n8n Automation Specialist | Mahdi Hasan',
+  og_description: 'AI agents and n8n automations for lead generation, sales reporting, and business workflows.',
   og_image_url: '',
 };
 

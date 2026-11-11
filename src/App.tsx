@@ -35,10 +35,17 @@ const AppContent: React.FC = () => {
     if (seo?.meta_title) {
       document.title = seo.meta_title;
     }
-    const metaDesc = document.querySelector('meta[name="description"]');
-    if (metaDesc && seo?.meta_description) {
-      metaDesc.setAttribute('content', seo.meta_description);
-    }
+    const updateMetaContent = (selector: string, content?: string) => {
+      if (!content) return;
+      const element = document.querySelector<HTMLMetaElement>(selector);
+      if (element) element.content = content;
+    };
+    updateMetaContent('meta[name="description"]', seo?.meta_description);
+    updateMetaContent('meta[name="keywords"]', seo?.keywords);
+    updateMetaContent('meta[property="og:title"]', seo?.og_title);
+    updateMetaContent('meta[property="og:description"]', seo?.og_description);
+    updateMetaContent('meta[name="twitter:title"]', seo?.og_title || seo?.meta_title);
+    updateMetaContent('meta[name="twitter:description"]', seo?.og_description || seo?.meta_description);
   }, [seo]);
 
   if (authLoading) {
