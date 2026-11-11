@@ -45,12 +45,12 @@ export const Hero: React.FC = () => {
 
             {/* Main Headline */}
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-white text-balance leading-[1.12]">
-              Bridging Sales & AI Automation to Help Businesses Grow Smarter.
+              AI & n8n Automation for Smarter Business Workflows
             </h1>
 
             {/* Exact Description requested by user */}
             <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl">
-              I help businesses streamline lead generation, sales reporting, and business workflows through AI-powered automation and n8n.
+              I build AI agents and n8n automations to streamline lead generation, sales reporting, and repetitive business workflows.
             </p>
 
             {/* Action Buttons */}

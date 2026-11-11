@@ -24,6 +24,12 @@ const AppContent: React.FC = () => {
   const { isAdmin, loading: authLoading } = useAuth();
   const { seo } = useData();
 
+  // Keep a content-rich, no-JavaScript fallback visible until the public app is ready.
+  useEffect(() => {
+    const fallback = document.getElementById('seo-fallback');
+    if (fallback) fallback.hidden = route !== 'home' || !authLoading;
+  }, [authLoading, route]);
+
   // Sync document head with dynamic SEO settings
   useEffect(() => {
     if (seo?.meta_title) {
