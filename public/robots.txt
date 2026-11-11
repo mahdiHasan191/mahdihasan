@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin
 Disallow: /admin/
 
-Sitemap: https://hasan.pages.dev/sitemap.xml
+Sitemap: https://mahdihasan.pages.dev/sitemap.xml
