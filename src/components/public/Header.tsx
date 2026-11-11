@@ -108,6 +108,15 @@ export const Header: React.FC = () => {
             <button
               onClick={() => {
                 if (route !== 'home') navigateTo('home');
+                scrollToSection('achievements');
+              }}
+              className="hover:text-cyan-400 transition-colors whitespace-nowrap shrink-0 hover:underline underline-offset-8"
+            >
+              {isBn ? 'Achievements' : 'Achievements'}
+            </button>
+            <button
+              onClick={() => {
+                if (route !== 'home') navigateTo('home');
                 scrollToSection('contact');
               }}
               className="hover:text-cyan-400 transition-colors whitespace-nowrap shrink-0 hover:underline underline-offset-8"
@@ -227,6 +236,16 @@ export const Header: React.FC = () => {
             className="block w-full text-left py-2 text-sm text-slate-300 hover:text-cyan-400"
           >
             {t('nav.skills', 'Skills')}
+          </button>
+          <button
+            onClick={() => {
+              if (route !== 'home') navigateTo('home');
+              scrollToSection('achievements');
+              setMobileMenuOpen(false);
+            }}
+            className="block w-full text-left py-2 text-sm text-slate-300 hover:text-cyan-400"
+          >
+            {isBn ? 'Achievements' : 'Achievements'}
           </button>
           <button
             onClick={() => {

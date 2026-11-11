@@ -17,12 +17,15 @@ import {
   UserCheck,
   ExternalLink,
   Sparkles,
+  Camera,
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 export const Hero: React.FC = () => {
   const { profile, settings } = useData();
   const { scrollToSection, navigateTo } = useNavigation();
   const { t, formatNumber, language } = useLanguage();
+  const { isAdmin } = useAuth();
 
   const isBn = language === 'bn';
 
@@ -48,6 +51,15 @@ export const Hero: React.FC = () => {
         <div className="relative rounded-3xl overflow-hidden border border-slate-800 bg-slate-900 shadow-2xl shadow-black/80">
           {/* Panoramic Cover Photo Banner (YouTube Cover Style) */}
           <div className="relative w-full h-48 sm:h-64 md:h-80 lg:h-96 overflow-hidden bg-gradient-to-r from-slate-950 via-slate-900 to-cyan-950">
+            {/* Direct Quick Edit Shortcut */}
+            <button
+              onClick={() => navigateTo(isAdmin ? 'admin_dashboard' : 'admin_login', 'profile')}
+              className="absolute top-4 left-4 z-20 inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-950/80 hover:bg-slate-900 border border-slate-700/80 hover:border-cyan-400 text-slate-300 hover:text-cyan-300 rounded-xl backdrop-blur-md transition-all shadow-lg text-[11px] font-medium"
+              title="Update Cover Photo & Profile Avatar in Admin Panel"
+            >
+              <Camera className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Update Cover & Photo</span>
+            </button>
             {coverBannerUrl ? (
               profile.cover_link ? (
                 <a
@@ -145,12 +157,21 @@ export const Hero: React.FC = () => {
                       </div>
                     )}
                   </div>
-                  {/* Verified badge */}
-                  <div
-                    className="absolute bottom-1 right-1 p-1 bg-cyan-400 text-slate-950 rounded-xl shadow-lg border-2 border-slate-950"
-                    title="Verified Specialist"
-                  >
-                    <UserCheck className="w-4 h-4" />
+                  {/* Verified badge & quick photo update shortcut */}
+                  <div className="absolute -bottom-1 -right-1 flex items-center gap-1 z-10">
+                    <button
+                      onClick={() => navigateTo(isAdmin ? 'admin_dashboard' : 'admin_login', 'profile')}
+                      className="p-1.5 bg-slate-900 hover:bg-cyan-400 hover:text-slate-950 text-cyan-300 rounded-xl shadow-lg border-2 border-slate-950 transition-colors"
+                      title="Update Profile Picture"
+                    >
+                      <Camera className="w-3.5 h-3.5" />
+                    </button>
+                    <div
+                      className="p-1 bg-cyan-400 text-slate-950 rounded-xl shadow-lg border-2 border-slate-950"
+                      title="Verified Specialist"
+                    >
+                      <UserCheck className="w-4 h-4" />
+                    </div>
                   </div>
                 </div>
 

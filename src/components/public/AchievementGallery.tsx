@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useData } from '../../context/DataContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { Award, Eye, X, ZoomIn, CheckCircle2, ShieldCheck, ChevronRight } from 'lucide-react';
+import { Award, Eye, X, ZoomIn, CheckCircle2, ShieldCheck, ChevronRight, ExternalLink } from 'lucide-react';
 import { Achievement } from '../../types';
 
 export const AchievementGallery: React.FC = () => {
@@ -133,7 +133,21 @@ export const AchievementGallery: React.FC = () => {
                       <span>Inspect Details</span>
                       <ChevronRight className="w-3.5 h-3.5" />
                     </button>
-                    <span className="text-[10px] font-mono text-slate-500">Dhaka North Territory</span>
+                    {item.link_url ? (
+                      <a
+                        href={item.link_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        title="Open direct achievement link"
+                        className="inline-flex items-center gap-1 text-[11px] font-mono text-cyan-400 hover:text-cyan-300 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/60 transition-colors"
+                      >
+                        <span>Link</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    ) : (
+                      <span className="text-[10px] font-mono text-slate-500">Verified Milestone</span>
+                    )}
                   </div>
                 </div>
               </div>

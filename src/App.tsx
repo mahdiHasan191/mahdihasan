@@ -10,7 +10,7 @@ import { About } from './components/public/About';
 import { ServicesSection } from './components/public/ServicesSection';
 import { PortfolioSection } from './components/public/PortfolioSection';
 import { SkillsSection } from './components/public/SkillsSection';
-import { TestimonialsSection } from './components/public/TestimonialsSection';
+import { AchievementGallery } from './components/public/AchievementGallery';
 import { ContactSection } from './components/public/ContactSection';
 import { Footer } from './components/public/Footer';
 import { CredentialsPage } from './components/public/CredentialsPage';
@@ -24,12 +24,13 @@ const AppContent: React.FC = () => {
   const { isAdmin, loading: authLoading } = useAuth();
   const { seo } = useData();
 
-  // Keep crawlable fallback until the public app is ready, and sync runtime SEO tags.
+  // Keep a crawlable fallback until the public app is ready.
   useEffect(() => {
     const fallback = document.getElementById('seo-fallback');
     if (fallback) fallback.hidden = route !== 'home' || !authLoading;
   }, [authLoading, route]);
 
+  // Sync document metadata with editable SEO settings.
   useEffect(() => {
     if (seo?.meta_title) document.title = seo.meta_title;
     const updateMetaContent = (selector: string, content?: string) => {
@@ -88,7 +89,7 @@ const AppContent: React.FC = () => {
         <ServicesSection />
         <PortfolioSection />
         <SkillsSection />
-        <TestimonialsSection />
+        <AchievementGallery />
         <ContactSection />
       </main>
       <Footer />

@@ -38,6 +38,7 @@ import {
   Menu,
   X,
   Trophy,
+  Download,
 } from 'lucide-react';
 import {
   Service,
@@ -637,6 +638,86 @@ CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO auth
                 )}
               </div>
             </div>
+
+            {/* Direct Export Files & Deployment Package */}
+            <div className="p-6 bg-gradient-to-r from-slate-900 via-cyan-950/30 to-purple-950/30 border border-cyan-500/30 rounded-2xl space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-base font-bold text-white flex items-center gap-2">
+                    <Download className="w-5 h-5 text-cyan-400" />
+                    <span>Direct Export Files & Deployment Packages</span>
+                  </h3>
+                  <p className="text-xs text-slate-300 mt-1">
+                    Download the pre-compiled, production-ready website or the full source code archive directly to your computer.
+                  </p>
+                </div>
+                <span className="px-3 py-1 bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 rounded-full text-xs font-mono self-start sm:self-center">
+                  Production Build Ready
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                {/* 1. Pre-built Dist ZIP */}
+                <div className="p-4 bg-slate-950/80 border border-slate-800 rounded-xl flex flex-col justify-between space-y-3">
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-bold text-white">Pre-Built Ready Website (dist)</span>
+                      <span className="text-[11px] font-mono text-cyan-400">~374 KB</span>
+                    </div>
+                    <p className="text-xs text-slate-400">
+                      Pre-compiled HTML, CSS, JavaScript, and assets with relative paths (<code className="text-cyan-300">base: './'</code>) and <code className="text-cyan-300">404.html</code> for GitHub Pages & Cloudflare Pages.
+                    </p>
+                  </div>
+                  <a
+                    href="./mahdi-hasan-dist-ready-to-deploy.zip"
+                    download="mahdi-hasan-dist-ready-to-deploy.zip"
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-semibold text-slate-950 bg-gradient-to-r from-cyan-400 to-cyan-300 hover:from-cyan-300 hover:to-cyan-200 rounded-xl shadow-md shadow-cyan-500/20 transition-all"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Download Ready Website (ZIP)</span>
+                  </a>
+                </div>
+
+                {/* 2. Full Source Code ZIP */}
+                <div className="p-4 bg-slate-950/80 border border-slate-800 rounded-xl flex flex-col justify-between space-y-3">
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-bold text-white">Complete Source Code</span>
+                      <span className="text-[11px] font-mono text-purple-400">~5.5 MB</span>
+                    </div>
+                    <p className="text-xs text-slate-400">
+                      Full React 19, TypeScript, Tailwind CSS, and Vite source files with complete components and configuration to commit to your GitHub repository.
+                    </p>
+                  </div>
+                  <a
+                    href="./mahdi-hasan-full-source-code.zip"
+                    download="mahdi-hasan-full-source-code.zip"
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-semibold text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition-all"
+                  >
+                    <Download className="w-4 h-4 text-cyan-400" />
+                    <span>Download Full Source Code (ZIP)</span>
+                  </a>
+                </div>
+              </div>
+
+              {/* GitHub Pages & Cross-Device Fix Explanations */}
+              <div className="p-4 bg-slate-950/60 border border-slate-800/80 rounded-xl text-xs space-y-2 text-slate-300">
+                <div className="font-semibold text-cyan-300">
+                  💡 GitHub-এ ওয়েবসাইট সুন্দরভাবে লাইভ করার নিয়ম (Why it looks broken & how to fix):
+                </div>
+                <ul className="list-disc list-inside space-y-1 text-slate-400 text-[11px] leading-relaxed">
+                  <li>
+                    <strong>Relative Paths Fixed:</strong> <code className="text-slate-300">vite.config.ts</code>-এ <code className="text-cyan-300">base: './'</code> যোগ করা হয়েছে। আগে এটি না থাকায় GitHub Pages-এ CSS ও JavaScript ফাইলগুলো 404 পেত এবং সাইট ভাঙা দেখাত। এখন এটি সম্পূর্ণ ঠিক করা হয়েছে।
+                  </li>
+                  <li>
+                    <strong>SPA Routing Fixed:</strong> GitHub Pages-এর জন্য <code className="text-cyan-300">404.html</code> যোগ করা হয়েছে যাতে রিফ্রেশ বা ডিরেক্ট লিংকে কোনো 404 ইরর না আসে।
+                  </li>
+                  <li>
+                    <strong>অন্য ডিভাইসে ছবি না পাওয়া সমাধান:</strong> অ্যাডমিন প্যানেল থেকে ছবি আপলোড করার সময় <code className="text-cyan-300">Imgur</code>, <code className="text-cyan-300">Postimages</code> বা <code className="text-cyan-300">Cloudinary</code>-তে ছবি আপলোড করে তার Direct Image URL দিন। অথবা <code className="text-cyan-300">Supabase Hub</code> থেকে আপনার Supabase URL ও Key কানেক্ট করুন। তাহলে পৃথিবীর যেকোনো মোবাইল বা ল্যাপটপ থেকে লাইভ ছবি দেখতে পাবেন!
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
         )}
 
@@ -763,10 +844,10 @@ CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO auth
                   />
                 </div>
 
-                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-4">
                   <div className="flex-1">
                     <span className="text-[11px] text-slate-400 block mb-1">
-                      Or Upload Banner File (Supabase Storage):
+                      Or Upload Banner File (From your computer):
                     </span>
                     <input
                       type="file"
@@ -788,7 +869,7 @@ CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO auth
               {/* Avatar Image Upload Trigger */}
               <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
                 <label className="block text-xs font-medium text-slate-300 mb-1">
-                  Upload New Avatar Photo (Supabase Storage)
+                  Upload Profile Avatar Photo (From your computer)
                 </label>
                 <div className="flex items-center gap-4">
                   <input
@@ -805,6 +886,12 @@ CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO auth
                     />
                   )}
                 </div>
+                {uploading && (
+                  <div className="flex items-center gap-2 text-xs text-cyan-300 animate-pulse pt-1">
+                    <div className="w-3.5 h-3.5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+                    <span>Uploading image to storage, please wait...</span>
+                  </div>
+                )}
                 <p className="text-[11px] text-slate-500">
                   Tip: A direct public link (e.g., from Imgur, Cloudinary, GitHub raw, or Supabase public bucket) is instantly visible to all visitors on any device!
                 </p>
@@ -812,9 +899,10 @@ CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO auth
 
               <button
                 type="submit"
-                className="px-5 py-2.5 text-xs font-semibold text-slate-950 bg-cyan-400 hover:bg-cyan-300 rounded-xl shadow-md shadow-cyan-500/20 transition-all"
+                disabled={uploading}
+                className="px-5 py-2.5 text-xs font-semibold text-slate-950 bg-cyan-400 hover:bg-cyan-300 disabled:opacity-50 rounded-xl shadow-md shadow-cyan-500/20 transition-all inline-flex items-center gap-2"
               >
-                Save Profile Changes
+                <span>Save Profile Changes</span>
               </button>
             </form>
           </div>
