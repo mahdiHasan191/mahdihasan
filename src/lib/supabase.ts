@@ -167,19 +167,20 @@ export const db = {
 
   async updateProfile(profile: Partial<Profile>): Promise<Profile> {
     const client = getSupabase();
+    if (!client) {
+      throw new Error('Cloud database is not configured. Profile changes cannot be shared across devices.');
+    }
     const current = await this.getProfile();
     const updated: Profile = { ...current, ...profile, updated_at: new Date().toISOString() };
 
-    if (client) {
-      try {
-        const { error } = await client.from('profiles').upsert(updated);
-        if (error) console.error('Supabase profile update error:', error);
-      } catch (err) {
-        console.error('Supabase profile update failed:', err);
-      }
+    const { data, error } = await client.from('profiles').upsert(updated).select('*').single();
+    if (error) {
+      console.error('Supabase profile update error:', error);
+      throw new Error(`Cloud profile save failed: ${error.message}`);
     }
-    setLocalData(STORAGE_KEYS.PROFILE, updated);
-    return updated;
+    const persisted = data as Profile;
+    setLocalData(STORAGE_KEYS.PROFILE, persisted);
+    return persisted;
   },
 
   // --- Website Settings ---
@@ -309,7 +310,7 @@ export const db = {
           query = query.eq('is_published', true);
         }
         const { data, error } = await query;
-        if (!error && data && data.length > 0) return data as Project[];
+        if (!error && data) return data as Project[];
       } catch (err) {
         console.warn('Falling back to local projects:', err);
       }
@@ -320,24 +321,15 @@ export const db = {
 
   async saveProject(project: Project): Promise<Project> {
     const client = getSupabase();
-    if (client) {
-      try {
-        await client.from('projects').upsert(project);
-      } catch (err) {
-        console.error('Supabase save project failed:', err);
-      }
+    if (!client) {
+      throw new Error('Cloud database is not configured. Portfolio changes cannot be shared across devices.');
     }
-    const all = await this.getProjects(false);
-    const index = all.findIndex((p) => p.id === project.id);
-    let nextList: Project[];
-    if (index >= 0) {
-      nextList = [...all];
-      nextList[index] = project;
-    } else {
-      nextList = [...all, project];
+    const { data, error } = await client.from('projects').upsert(project).select('*').single();
+    if (error) {
+      console.error('Supabase save project failed:', error);
+      throw new Error(`Cloud portfolio save failed: ${error.message}`);
     }
-    setLocalData(STORAGE_KEYS.PROJECTS, nextList);
-    return project;
+    return data as Project;
   },
 
   async deleteProject(id: string): Promise<void> {
@@ -621,7 +613,7 @@ export const db = {
           query = query.eq('is_published', true);
         }
         const { data, error } = await query;
-        if (!error && data && data.length > 0) return data as Achievement[];
+        if (!error && data) return data as Achievement[];
       } catch (err) {
         console.warn('Falling back to local achievements:', err);
       }
@@ -632,18 +624,15 @@ export const db = {
 
   async saveAchievement(achievement: Achievement): Promise<Achievement> {
     const client = getSupabase();
-    if (client) {
-      try {
-        await client.from('achievements').upsert(achievement);
-      } catch (err) {
-        console.error('Supabase save achievement failed:', err);
-      }
+    if (!client) {
+      throw new Error('Cloud database is not configured. Gallery changes cannot be shared across devices.');
     }
-    const all = await this.getAchievements(false);
-    const idx = all.findIndex((a) => a.id === achievement.id);
-    const nextList = idx >= 0 ? all.map((a) => (a.id === achievement.id ? achievement : a)) : [...all, achievement];
-    setLocalData(STORAGE_KEYS.ACHIEVEMENTS, nextList);
-    return achievement;
+    const { data, error } = await client.from('achievements').upsert(achievement).select('*').single();
+    if (error) {
+      console.error('Supabase save achievement failed:', error);
+      throw new Error(`Cloud gallery save failed: ${error.message}`);
+    }
+    return data as Achievement;
   },
 
   async deleteAchievement(id: string): Promise<void> {

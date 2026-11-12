@@ -141,14 +141,14 @@ export const AdminDashboard: React.FC = () => {
   ];
 
   // Helper for image upload
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, onComplete: (url: string) => void) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, onComplete: (url: string) => void | Promise<void>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploading(true);
     try {
       const url = await db.uploadFile('portfolio-images', file);
-      onComplete(url);
+      await onComplete(url);
       showSuccessBanner('Image uploaded successfully!');
     } catch (err: any) {
       alert('Upload failed: ' + err.message);
@@ -1572,9 +1572,13 @@ CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO auth
                   <button
                     onClick={async () => {
                       if (!editingProject.title.trim()) return;
-                      await saveProject(editingProject);
-                      setEditingProject(null);
-                      showSuccessBanner('Project saved!');
+                      try {
+                        await saveProject(editingProject);
+                        setEditingProject(null);
+                        showSuccessBanner('Project saved to the shared website!');
+                      } catch (err: any) {
+                        alert('Project save failed: ' + err.message);
+                      }
                     }}
                     className="px-4 py-2 text-xs font-semibold text-slate-950 bg-cyan-400 hover:bg-cyan-300 rounded-xl"
                   >
@@ -2182,9 +2186,13 @@ CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO auth
                         alert('Please provide an achievement title.');
                         return;
                       }
-                      await saveAchievement(editingAchievement);
-                      setEditingAchievement(null);
-                      showSuccessBanner('Achievement saved successfully!');
+                      try {
+                        await saveAchievement(editingAchievement);
+                        setEditingAchievement(null);
+                        showSuccessBanner('Achievement saved to the shared website!');
+                      } catch (err: any) {
+                        alert('Gallery save failed: ' + err.message);
+                      }
                     }}
                     className="px-5 py-2.5 text-xs font-semibold text-slate-950 bg-cyan-400 hover:bg-cyan-300 rounded-xl"
                   >
