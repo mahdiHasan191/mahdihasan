@@ -60,7 +60,7 @@ export function getSupabaseCredentials(): { url: string; anonKey: string } {
     // Ignore error
   }
 
-  const envUrl = (import.meta.env.VITE_SUPABASE_URL || '').trim();
+  const envUrl = (import.meta.env.VITE_SUPABASE_URL || 'https://mqxkytdyvzdolbihbdjg.supabase.co').trim();
   const envKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_jtikTOSEfzh_VcxaML-4Qw_xEnFMfht').trim();
 
   return {
