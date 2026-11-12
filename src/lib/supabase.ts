@@ -866,35 +866,45 @@ export const db = {
   // --- Supabase Storage File Upload ---
   async uploadFile(bucket: 'portfolio-images' | 'resumes', file: File): Promise<string> {
     const client = getSupabase();
-    const cleanFileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-
-    if (client) {
-      try {
-        const { data, error } = await client.storage.from(bucket).upload(cleanFileName, file, {
-          cacheControl: '3600',
-          upsert: true,
-        });
-
-        if (error) {
-          throw error;
-        }
-
-        const { data: publicUrlData } = client.storage.from(bucket).getPublicUrl(data.path);
-        if (publicUrlData?.publicUrl) {
-          return publicUrlData.publicUrl;
-        }
-      } catch (err) {
-        console.warn('Supabase storage upload failed, creating base64 data preview:', err);
-      }
+    if (!client) {
+      throw new Error('Cloud storage is not configured. Connect the Supabase project before uploading files.');
     }
 
-    // Fallback: Read as base64 data URL
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = (e) => reject(e);
-      reader.readAsDataURL(file);
+    const { data: authData, error: authError } = await client.auth.getUser();
+    const userId = authData.user?.id;
+    if (authError || !userId) {
+      throw new Error('Sign in with the Supabase admin account before uploading.');
+    }
+
+    const maxFileSize = 10 * 1024 * 1024;
+    if (file.size <= 0 || file.size > maxFileSize) {
+      throw new Error('File must be smaller than 10 MB.');
+    }
+    if (bucket === 'portfolio-images' && !['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'].includes(file.type)) {
+      throw new Error('Choose a JPEG, PNG, WebP, GIF, or AVIF image.');
+    }
+    if (bucket === 'resumes' && !['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(file.type)) {
+      throw new Error('Choose a PDF, DOC, or DOCX resume.');
+    }
+
+    const extension = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'bin';
+    const objectPath = `${userId}/${crypto.randomUUID()}.${extension}`;
+    const { data, error } = await client.storage.from(bucket).upload(objectPath, file, {
+      cacheControl: '3600',
+      upsert: false,
+      contentType: file.type,
     });
+
+    if (error) {
+      console.error('Supabase storage upload failed:', error);
+      throw new Error(`Cloud upload failed: ${error.message}`);
+    }
+
+    const { data: publicUrlData } = client.storage.from(bucket).getPublicUrl(data.path);
+    if (!publicUrlData?.publicUrl) {
+      throw new Error('Upload completed, but Supabase did not return a public image URL.');
+    }
+    return publicUrlData.publicUrl;
   },
 
   // Reset all local demo data back to default initialData
