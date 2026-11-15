@@ -497,7 +497,7 @@ export const PrivacyPolicyPage: React.FC = () => {
           <div>
             <h2 className="text-base font-bold text-white mb-1">2. Analytics &amp; Session Data</h2>
             <p>
-              Lightweight aggregate visit counts and device category metrics may be logged for traffic monitoring. Personal inquiry details are never sold, rented, or shared with third-party advertisers.
+              Lightweight visit records may include your approximate location, IP address, device type, operating system, browser, language, referrer, landing page, and visit count. This information is used only to understand website usage and improve the service. A visitor identifier may be stored in your browser for returning-visit detection. External IP-enrichment services may be contacted to estimate country or city. Personal inquiry details are never sold, rented, or shared with third-party advertisers.
             </p>
           </div>
           <div>
