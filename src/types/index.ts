@@ -32,6 +32,12 @@ export interface Service {
   slug: string;
   category: 'AI & Automation' | 'Digital Marketing' | 'Sales Operations';
   description: string;
+  problem?: string;
+  solution?: string;
+  tools?: string[];
+  expected_result?: string;
+  scope?: string;
+  case_study_slug?: string;
   icon_name: string;
   deliverables: string[];
   link_url?: string;
@@ -50,6 +56,8 @@ export interface Project {
   challenge?: string;
   solution?: string;
   outcome?: string;
+  result_label?: 'Sample Project' | 'Expected Workflow' | 'Verified Operational Tool';
+  time_saved?: string;
   tech_stack: string[];
   image_url: string;
   link_url?: string;

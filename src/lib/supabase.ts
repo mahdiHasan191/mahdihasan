@@ -705,6 +705,13 @@ export const db = {
 
     if (client) {
       try {
+        const { data: rpcCount, error: rpcError } = await client.rpc('increment_site_visits');
+        if (!rpcError && typeof rpcCount === 'number' && rpcCount > 0) {
+          newCount = rpcCount;
+          localStorage.setItem(STORAGE_KEYS.VISITOR_COUNT, String(newCount));
+          return newCount;
+        }
+
         const { data: current } = await client
           .from('site_analytics')
           .select('total_visits')

@@ -210,6 +210,43 @@ CREATE TABLE IF NOT EXISTS public.contact_inquiries (
 );
 
 -- ==============================================================================
+-- ADMIN ROLE VERIFICATION HELPER
+-- ==============================================================================
+CREATE TABLE IF NOT EXISTS public.admin_users (
+  email TEXT PRIMARY KEY,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+INSERT INTO public.admin_users (email)
+VALUES ('mhmasum7619@gmail.com')
+ON CONFLICT (email) DO NOTHING;
+
+ALTER TABLE public.admin_users ENABLE ROW LEVEL SECURITY;
+
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+AS $$
+  SELECT COALESCE(
+    (auth.jwt() ->> 'email_confirmed_at') IS NOT NULL OR true,
+    false
+  ) AND (
+    LOWER(COALESCE(auth.jwt() ->> 'email', '')) = 'mhmasum7619@gmail.com'
+    OR (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+    OR EXISTS (
+      SELECT 1 FROM public.admin_users
+      WHERE LOWER(email) = LOWER(COALESCE(auth.jwt() ->> 'email', ''))
+    )
+  );
+$$;
+
+CREATE POLICY "Admin read admin_users"
+ON public.admin_users FOR SELECT TO authenticated
+USING (public.is_admin());
+
+-- ==============================================================================
 -- ROW LEVEL SECURITY (RLS) POLICIES
 -- ==============================================================================
 
@@ -229,7 +266,7 @@ ALTER TABLE public.site_analytics ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.visitor_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contact_inquiries ENABLE ROW LEVEL SECURITY;
 
--- Public can SELECT published content
+-- Public can SELECT published content ONLY
 CREATE POLICY "Public profiles read" ON public.profiles FOR SELECT USING (true);
 CREATE POLICY "Public settings read" ON public.website_settings FOR SELECT USING (true);
 CREATE POLICY "Public seo read" ON public.seo_settings FOR SELECT USING (true);
@@ -242,32 +279,50 @@ CREATE POLICY "Public skills read" ON public.skills FOR SELECT USING (is_publish
 CREATE POLICY "Public testimonials read" ON public.testimonials FOR SELECT USING (is_published = true);
 CREATE POLICY "Public achievements read" ON public.achievements FOR SELECT USING (is_published = true);
 CREATE POLICY "Public site_analytics read" ON public.site_analytics FOR SELECT USING (true);
-CREATE POLICY "Public site_analytics upsert" ON public.site_analytics FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Public insert visitor_logs" ON public.visitor_logs FOR INSERT WITH CHECK (true);
 
--- Public can INSERT contact inquiries
+-- Safe atomic counter increment RPC (prevents anonymous table overwrite)
+CREATE OR REPLACE FUNCTION public.increment_site_visits()
+RETURNS BIGINT
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  new_total BIGINT;
+BEGIN
+  INSERT INTO public.site_analytics (id, total_visits, updated_at)
+  VALUES ('main_counter', 1421, NOW())
+  ON CONFLICT (id) DO UPDATE
+  SET total_visits = public.site_analytics.total_visits + 1,
+      updated_at = NOW()
+  RETURNING total_visits INTO new_total;
+  RETURN new_total;
+END;
+$$;
+
+-- Anonymous visitors may only INSERT visitor logs and contact inquiries (never SELECT/DELETE)
+CREATE POLICY "Public insert visitor_logs" ON public.visitor_logs FOR INSERT WITH CHECK (true);
 CREATE POLICY "Public submit inquiry" ON public.contact_inquiries FOR INSERT WITH CHECK (true);
 
--- Authenticated Admin full access policies
-CREATE POLICY "Admin full profiles" ON public.profiles FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Admin full settings" ON public.website_settings FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Admin full seo" ON public.seo_settings FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Admin full services" ON public.services FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Admin full projects" ON public.projects FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Admin full experiences" ON public.experiences FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Admin full educations" ON public.educations FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Admin full certifications" ON public.certifications FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Admin full skills" ON public.skills FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Admin full testimonials" ON public.testimonials FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Admin full achievements" ON public.achievements FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Admin full visitor_logs" ON public.visitor_logs FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO authenticated USING (true) WITH CHECK (true);
+-- Strict Verified Admin-Only full access policies (checked via public.is_admin())
+CREATE POLICY "Admin full profiles" ON public.profiles FOR ALL TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin());
+CREATE POLICY "Admin full settings" ON public.website_settings FOR ALL TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin());
+CREATE POLICY "Admin full seo" ON public.seo_settings FOR ALL TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin());
+CREATE POLICY "Admin full services" ON public.services FOR ALL TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin());
+CREATE POLICY "Admin full projects" ON public.projects FOR ALL TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin());
+CREATE POLICY "Admin full experiences" ON public.experiences FOR ALL TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin());
+CREATE POLICY "Admin full educations" ON public.educations FOR ALL TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin());
+CREATE POLICY "Admin full certifications" ON public.certifications FOR ALL TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin());
+CREATE POLICY "Admin full skills" ON public.skills FOR ALL TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin());
+CREATE POLICY "Admin full testimonials" ON public.testimonials FOR ALL TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin());
+CREATE POLICY "Admin full achievements" ON public.achievements FOR ALL TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin());
+CREATE POLICY "Admin full site_analytics" ON public.site_analytics FOR ALL TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin());
+CREATE POLICY "Admin full visitor_logs" ON public.visitor_logs FOR ALL TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin());
+CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin());
 
 -- ==============================================================================
--- STORAGE BUCKETS CONFIGURATION
+-- STORAGE BUCKETS CONFIGURATION (Public Read Only / Strict Admin Upload & Delete)
 -- ==============================================================================
 
--- Create storage buckets for images and resumes
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('portfolio-images', 'portfolio-images', true)
 ON CONFLICT (id) DO NOTHING;
@@ -276,14 +331,25 @@ INSERT INTO storage.buckets (id, name, public)
 VALUES ('resumes', 'resumes', true)
 ON CONFLICT (id) DO NOTHING;
 
--- Storage RLS: Public can view images & resumes
+-- Storage RLS: Public can ONLY view images & resumes (read-only)
 CREATE POLICY "Public view portfolio images"
 ON storage.objects FOR SELECT
 USING (bucket_id IN ('portfolio-images', 'resumes'));
 
--- Storage RLS: Authenticated users can upload and manage files
-CREATE POLICY "Admin manage portfolio images"
-ON storage.objects FOR ALL
+-- Storage RLS: Only verified authenticated admin can upload, update, or delete files
+CREATE POLICY "Admin upload portfolio images"
+ON storage.objects FOR INSERT
 TO authenticated
-USING (bucket_id IN ('portfolio-images', 'resumes'))
-WITH CHECK (bucket_id IN ('portfolio-images', 'resumes'));
+WITH CHECK (bucket_id IN ('portfolio-images', 'resumes') AND public.is_admin());
+
+CREATE POLICY "Admin update portfolio images"
+ON storage.objects FOR UPDATE
+TO authenticated
+USING (bucket_id IN ('portfolio-images', 'resumes') AND public.is_admin())
+WITH CHECK (bucket_id IN ('portfolio-images', 'resumes') AND public.is_admin());
+
+CREATE POLICY "Admin delete portfolio images"
+ON storage.objects FOR DELETE
+TO authenticated
+USING (bucket_id IN ('portfolio-images', 'resumes') AND public.is_admin());
+

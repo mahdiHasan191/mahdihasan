@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="ogBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#020617" />
+      <stop offset="55%" stop-color="#0b152a" />
+      <stop offset="100%" stop-color="#082f49" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#22d3ee" />
+      <stop offset="100%" stop-color="#10b981" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#ogBg)" />
+  <rect x="44" y="44" width="1112" height="542" rx="28" fill="#071122" fill-opacity="0.72" stroke="#22d3ee" stroke-opacity="0.35" stroke-width="2" />
+  <rect x="92" y="96" width="110" height="6" rx="3" fill="url(#accent)" />
+  <text x="92" y="148" fill="#34d399" font-family="ui-monospace, monospace" font-size="22" font-weight="700" letter-spacing="2">AI AUTOMATION &amp; SALES OPERATIONS SPECIALIST</text>
+  <text x="92" y="232" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="68" font-weight="900">Mahdi Hasan</text>
+  <text x="92" y="294" fill="#cbd5e1" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="500">Helping FMCG teams and small businesses automate lead generation,</text>
+  <text x="92" y="334" fill="#cbd5e1" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="500">sales reporting, and customer follow-up with AI, n8n, and MCP.</text>
+  <g transform="translate(92, 396)">
+    <rect width="180" height="48" rx="12" fill="#0f172a" stroke="#22d3ee" stroke-opacity="0.5" />
+    <text x="90" y="31" text-anchor="middle" fill="#67e8f9" font-family="ui-monospace, monospace" font-size="18" font-weight="700">n8n Workflows</text>
+    <rect x="200" width="210" height="48" rx="12" fill="#0f172a" stroke="#10b981" stroke-opacity="0.5" />
+    <text x="305" y="31" text-anchor="middle" fill="#6ee7b7" font-family="ui-monospace, monospace" font-size="18" font-weight="700">AI Agents &amp; MCP</text>
+    <rect x="430" width="215" height="48" rx="12" fill="#0f172a" stroke="#38bdf8" stroke-opacity="0.5" />
+    <text x="537" y="31" text-anchor="middle" fill="#7dd3fc" font-family="ui-monospace, monospace" font-size="18" font-weight="700">Sales Reporting</text>
+    <rect x="665" width="215" height="48" rx="12" fill="#0f172a" stroke="#a855f7" stroke-opacity="0.5" />
+    <text x="772" y="31" text-anchor="middle" fill="#d8b4fe" font-family="ui-monospace, monospace" font-size="18" font-weight="700">Lead Automation</text>
+  </g>
+  <text x="92" y="532" fill="#94a3b8" font-family="ui-monospace, monospace" font-size="22" font-weight="600">https://mahdihasan.pages.dev/  ·  Dhaka, Bangladesh  ·  mhmasum7619@gmail.com</text>
+</svg>

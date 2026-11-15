@@ -70,12 +70,12 @@ export const translations: Translations = {
     bn: 'Sales & AI Automation Specialist · Dhaka, Bangladesh',
   },
   'hero.headline': {
-    en: 'Bridging Sales & AI Automation to Help Businesses Grow Smarter.',
-    bn: 'Sales ও AI Automation-এর সমন্বয়ে ব্যবসাকে আরও Smartly এগিয়ে নেওয়া।',
+    en: 'AI Automation & Sales Operations Specialist for FMCG and Small Businesses.',
+    bn: 'FMCG এবং Small Businesses-এর জন্য AI Automation ও Sales Operations Specialist।',
   },
   'hero.description': {
-    en: 'I help businesses streamline lead generation, sales reporting, and business workflows through AI-powered automation and n8n.',
-    bn: 'আমি AI-powered Automation এবং n8n-এর মাধ্যমে ব্যবসায়ের Lead Generation, Sales Reporting এবং Business Workflows সহজ ও স্বয়ংক্রিয় করতে সাহায্য করি।',
+    en: 'I help FMCG teams and small businesses automate lead generation, sales reporting, customer follow-up, and daily business workflows using AI, n8n, and modern automation tools.',
+    bn: 'আমি FMCG টিম ও Small Businesses-কে AI, n8n ও Modern Automation-এর মাধ্যমে Lead Generation, Sales Reporting, Customer Follow-up এবং প্রতিদিনের Business Workflows স্বয়ংক্রিয় করতে সাহায্য করি।',
   },
   'hero.btn_projects': {
     en: 'Explore Automation Projects',

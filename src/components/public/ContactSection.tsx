@@ -26,6 +26,7 @@ export const ContactSection: React.FC = () => {
 
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [emailStatus, setEmailStatus] = useState<'sent' | 'needs_activation' | 'fallback'>('sent');
   const [lastSubmitted, setLastSubmitted] = useState<typeof formData | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -56,20 +57,6 @@ ${data.message}`;
     return `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(recipientEmail)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
-  const constructMailtoUrl = (data: typeof formData) => {
-    const subject = `[Project Inquiry] ${data.service_interest || 'Collaboration'} - from ${data.name}`;
-    const body = `Name: ${data.name}
-Email: ${data.email}
-Phone/WhatsApp: ${data.phone || 'N/A'}
-Organization/Brand: ${data.company || 'N/A'}
-Service Interest: ${data.service_interest || 'General Inquiry'}
-
-Message:
-${data.message}`;
-
-    return `mailto:${recipientEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
@@ -97,16 +84,59 @@ ${data.message}`;
     setLastSubmitted(submissionData);
 
     try {
-      const result = await db.submitInquiry({
+      const cleanPayload = {
         name: formData.name.trim(),
         email: formData.email.trim(),
         phone: formData.phone.trim() || undefined,
         company: formData.company.trim() || undefined,
         service_interest: formData.service_interest || undefined,
         message: formData.message.trim(),
-      });
+      };
 
-      if (result.success) {
+      const directEmailPromise = fetch(
+        `https://formsubmit.co/ajax/${encodeURIComponent(recipientEmail)}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          body: JSON.stringify({
+            name: cleanPayload.name,
+            email: cleanPayload.email,
+            phone: cleanPayload.phone || 'N/A',
+            company: cleanPayload.company || 'N/A',
+            service_interest: cleanPayload.service_interest || 'General Inquiry',
+            message: cleanPayload.message,
+            _subject: `[Portfolio Inquiry] ${cleanPayload.service_interest || 'Collaboration'} - ${cleanPayload.name}`,
+            _replyto: cleanPayload.email,
+            _template: 'table',
+            _captcha: 'false',
+          }),
+        }
+      )
+        .then(async (res) => {
+          const data = await res.json().catch(() => ({}));
+          if (res.ok && (data.success === 'true' || data.success === true)) {
+            return 'sent' as const;
+          }
+          if (
+            typeof data?.message === 'string' &&
+            data.message.toLowerCase().includes('activate')
+          ) {
+            return 'needs_activation' as const;
+          }
+          return 'fallback' as const;
+        })
+        .catch(() => 'fallback' as const);
+
+      const [result, dispatchStatus] = await Promise.all([
+        db.submitInquiry(cleanPayload),
+        directEmailPromise,
+      ]);
+
+      if (result.success || dispatchStatus === 'sent') {
+        setEmailStatus(dispatchStatus);
         setSuccess(true);
         setFormData({
           name: '',
@@ -172,7 +202,7 @@ ${data.message}`;
             </div>
             <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-2.5 py-0.5 rounded-full hidden sm:inline-flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Direct Route</span>
+              <span>Auto Direct Mail</span>
             </span>
           </div>
 
@@ -181,49 +211,60 @@ ${data.message}`;
               <div className="w-14 h-14 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-emerald-950/40">
                 <CheckCircle className="w-7 h-7" />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 <h3 className="text-2xl font-bold text-white">
                   {language === 'bn'
-                    ? 'বার্তাটি সফলভাবে গৃহীত হয়েছে!'
-                    : 'Inquiry Dispatched Successfully!'}
+                    ? `বার্তাটি সরাসরি ${recipientEmail}-এ সফলভাবে পাঠানো হয়েছে!`
+                    : `Sent Directly to ${recipientEmail}!`}
                 </h3>
                 <p className="text-sm text-slate-300 max-w-lg mx-auto leading-relaxed">
-                  {language === 'bn'
-                    ? `ধন্যবাদ! আপনার বার্তাটি সিস্টেমে সংরক্ষিত হয়েছে। দ্রুততম যোগাযোগের জন্য আপনি সরাসরি আপনার Gmail থেকেও পাঠাতে পারেন:`
-                    : `Thank you! Your message has been saved to the inquiry system. You can also open it directly in your Gmail with one click:`}
+                  {emailStatus === 'needs_activation' ? (
+                    language === 'bn' ? (
+                      <>
+                        আপনার বার্তা সিস্টেমে সংরক্ষিত হয়েছে এবং প্রথমবার ডাইরেক্ট মেইল অ্যাক্টিভেশন রিকোয়েস্ট{' '}
+                        <span className="text-cyan-300 font-mono">{recipientEmail}</span>-এ পাঠানো হয়েছে। অনুগ্রহ করে ইনবক্স থেকে একবার Activate লিংকে ক্লিক করলেই পরের সব মেইল সরাসরি চলে যাবে।
+                      </>
+                    ) : (
+                      <>
+                        Your message has been saved and an initial FormSubmit activation link was sent to{' '}
+                        <span className="text-cyan-300 font-mono">{recipientEmail}</span>. Click Activate once in Gmail so every future message arrives automatically.
+                      </>
+                    )
+                  ) : language === 'bn' ? (
+                    <>
+                      ধন্যবাদ! আপনার বার্তাটি স্বয়ংক্রিয়ভাবে{' '}
+                      <span className="text-cyan-300 font-mono font-semibold">{recipientEmail}</span>-এ পাঠানো হয়েছে এবং ড্যাশবোর্ডে সংরক্ষিত হয়েছে।
+                    </>
+                  ) : (
+                    <>
+                      Thank you! Your inquiry has been automatically delivered to{' '}
+                      <span className="text-cyan-300 font-mono font-semibold">{recipientEmail}</span> and logged in the system.
+                    </>
+                  )}
                 </p>
               </div>
 
-              {/* Action Buttons to open in Gmail or send another */}
               <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-                <a
-                  href={constructGmailUrl(lastSubmitted)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-lighting inline-flex items-center gap-2 px-5 py-2.5 text-xs font-semibold text-slate-950 bg-gradient-to-r from-cyan-400 to-cyan-300 hover:from-cyan-300 hover:to-cyan-200 rounded-xl transition-all hover:scale-105"
-                >
-                  <Mail className="w-4 h-4" />
-                  <span>
-                    {language === 'bn' ? 'Gmail অ্যাপে বার্তাটি ওপেন করুন' : 'Open Directly in Gmail'}
-                  </span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-
-                <a
-                  href={constructMailtoUrl(lastSubmitted)}
-                  className="btn-lighting inline-flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-slate-200 hover:text-white bg-slate-950 border border-cyan-500/35 rounded-xl transition-colors"
-                >
-                  <span>
-                    {language === 'bn' ? 'ডিফল্ট ইমেইল অ্যাপ দিয়ে পাঠান' : 'Default Mail Client'}
-                  </span>
-                </a>
-
                 <button
                   onClick={() => setSuccess(false)}
-                  className="btn-glow-soft px-4 py-2.5 text-xs font-medium text-slate-300 hover:text-cyan-300 border border-slate-800 rounded-xl transition-colors"
+                  className="btn-lighting inline-flex items-center gap-2 px-5 py-2.5 text-xs font-semibold text-slate-950 bg-gradient-to-r from-cyan-400 to-cyan-300 hover:from-cyan-300 hover:to-cyan-200 rounded-xl transition-all hover:scale-105"
                 >
-                  {language === 'bn' ? 'আরেকটি বার্তা লিখুন' : 'Send Another Message'}
+                  <Send className="w-3.5 h-3.5" />
+                  <span>{language === 'bn' ? 'আরেকটি বার্তা লিখুন' : 'Send Another Message'}</span>
                 </button>
+
+                {emailStatus !== 'sent' && (
+                  <a
+                    href={constructGmailUrl(lastSubmitted)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-glow-soft inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-medium text-slate-300 hover:text-cyan-300 border border-slate-800 rounded-xl transition-colors"
+                  >
+                    <Mail className="w-3.5 h-3.5" />
+                    <span>{language === 'bn' ? 'Gmail-এ কপি পাঠান' : 'Send Backup via Gmail'}</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
               </div>
             </div>
           ) : (

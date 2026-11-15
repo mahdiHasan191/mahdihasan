@@ -16,16 +16,17 @@ import {
   FileText,
   Zap,
   ArrowRight,
-  CheckCircle,
   ExternalLink,
   ChevronLeft,
   ChevronRight,
   Pause,
   Play,
+  Wrench,
+  Clock,
 } from 'lucide-react';
 import { WorkflowIconNode } from '../common/WorkflowIconNode';
+import { AppRoute } from '../../data/seoRoutes';
 
-// Icon mapper for dynamic service cards
 const iconMap: Record<string, React.ElementType> = {
   Bot,
   Target,
@@ -43,7 +44,7 @@ const iconMap: Record<string, React.ElementType> = {
 
 export const ServicesSection: React.FC = () => {
   const { services } = useData();
-  const { scrollToSection } = useNavigation();
+  const { scrollToSection, navigateTo } = useNavigation();
   const { t } = useLanguage();
   const [filterCategory, setFilterCategory] = useState<string>('All');
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -51,9 +52,8 @@ export const ServicesSection: React.FC = () => {
   const [itemsPerView, setItemsPerView] = useState(3);
   const touchStartX = useRef<number | null>(null);
 
-  // Filter only published services
   const publishedServices = services.filter((s) => s.is_published);
-  const categories = ['All', 'AI & Automation', 'Digital Marketing', 'Sales Operations'];
+  const categories = ['All', 'AI & Automation', 'Sales Operations', 'Digital Marketing'];
 
   const filtered =
     filterCategory === 'All'
@@ -62,13 +62,11 @@ export const ServicesSection: React.FC = () => {
 
   const totalItems = filtered.length;
 
-  // Reset index on filter change
   const handleCategoryChange = (cat: string) => {
     setFilterCategory(cat);
     setCurrentIndex(0);
   };
 
-  // Responsive itemsPerView
   useEffect(() => {
     const updateItemsPerView = () => {
       const width = window.innerWidth;
@@ -77,7 +75,7 @@ export const ServicesSection: React.FC = () => {
       } else if (width < 1024) {
         setItemsPerView(totalItems >= 2 ? 2 : 1);
       } else {
-        setItemsPerView(totalItems >= 3 ? 3 : (totalItems >= 2 ? 2 : 1));
+        setItemsPerView(totalItems >= 3 ? 3 : totalItems >= 2 ? 2 : 1);
       }
     };
 
@@ -86,17 +84,14 @@ export const ServicesSection: React.FC = () => {
     return () => window.removeEventListener('resize', updateItemsPerView);
   }, [totalItems]);
 
-  // Infinite display list (tripled for continuous seamless auto-slide)
-  const displayList =
-    totalItems > 1 ? [...filtered, ...filtered, ...filtered] : filtered;
+  const displayList = totalItems > 1 ? [...filtered, ...filtered, ...filtered] : filtered;
 
-  // Auto-slide effect (every 3.5s when not paused)
   useEffect(() => {
     if (isPaused || totalItems <= 1) return;
 
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % totalItems);
-    }, 3500);
+    }, 3800);
 
     return () => clearInterval(timer);
   }, [isPaused, totalItems]);
@@ -131,35 +126,45 @@ export const ServicesSection: React.FC = () => {
     scrollToSection('contact');
   };
 
+  const resolveServiceRoute = (slug?: string): AppRoute => {
+    if (slug === 'ai-automation') return 'service_ai';
+    if (slug === 'n8n-automation') return 'service_n8n';
+    if (slug === 'sales-reporting') return 'service_sales';
+    return 'case_studies';
+  };
+
   return (
-    <section id="services" className="py-24 bg-slate-950 border-t border-slate-900 relative overflow-hidden">
-      {/* Background glow */}
+    <section
+      id="services"
+      className="py-20 sm:py-24 bg-slate-950 border-t border-slate-900 relative overflow-hidden"
+    >
       <div className="absolute top-1/2 left-0 w-96 h-96 bg-cyan-600/5 rounded-full blur-[120px] pointer-events-none -z-10" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
           <div>
             <div className="text-xs font-semibold tracking-wider uppercase text-cyan-400 mb-2 flex items-center gap-2">
-              <span>{t('services.kicker')}</span>
-              <span className="inline-flex items-center gap-1 text-[10px] font-mono bg-cyan-950/80 text-cyan-300 border border-cyan-800/60 px-2 py-0.5 rounded-full animate-pulse">
-                Auto-Slide Active
+              <span>{t('services.kicker', '02. Core Capabilities & Offerings')}</span>
+              <span className="inline-flex items-center gap-1 text-[10px] font-mono bg-cyan-950/80 text-cyan-300 border border-cyan-800/60 px-2 py-0.5 rounded-full">
+                Problem → Solution → Scope
               </span>
             </div>
             <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight pb-0.5 animate-section-heading">
-              {t('services.headline')}
+              {t('services.headline', 'Specialized AI Automation & Sales Services')}
             </h2>
             <div className="relative w-24 sm:w-32 h-[3px] rounded-full bg-slate-800/90 overflow-hidden mt-2">
               <div className="animate-heading-beam w-12 h-full bg-gradient-to-r from-transparent via-cyan-400 to-emerald-400" />
             </div>
             <p className="mt-3 text-base text-slate-300 max-w-2xl">
-              {t('services.subtitle')}
+              {t(
+                'services.subtitle',
+                'Structured automation workflows engineered for FMCG distribution teams and small businesses — transparent scope, proven tooling, and realistic expectations.'
+              )}
             </p>
           </div>
 
-          {/* Interactive Category Filter and Controls */}
           <div className="flex flex-wrap items-center gap-3 shrink-0">
-            {/* Category Filter Pills */}
             <div className="flex flex-wrap items-center gap-1 p-1 bg-slate-900 border border-slate-800 rounded-xl">
               {categories.map((cat) => (
                 <button
@@ -176,7 +181,6 @@ export const ServicesSection: React.FC = () => {
               ))}
             </div>
 
-            {/* Carousel Navigation Controls */}
             {totalItems > 1 && (
               <div className="flex items-center gap-1.5 p-1 bg-slate-900 border border-slate-800 rounded-xl">
                 <button
@@ -206,6 +210,37 @@ export const ServicesSection: React.FC = () => {
           </div>
         </div>
 
+        {/* Dedicated Service Route Shortcuts */}
+        <div className="flex flex-wrap items-center gap-2 mb-8">
+          <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 mr-1">
+            Deep-Dive Pages:
+          </span>
+          <button
+            onClick={() => navigateTo('services')}
+            className="text-xs px-3 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-slate-800 hover:border-cyan-500/40 transition-colors"
+          >
+            All Services Overview →
+          </button>
+          <button
+            onClick={() => navigateTo('service_ai')}
+            className="text-xs px-3 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-cyan-300 border border-slate-800 hover:border-cyan-500/40 transition-colors"
+          >
+            AI &amp; Agent Automation
+          </button>
+          <button
+            onClick={() => navigateTo('service_n8n')}
+            className="text-xs px-3 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-cyan-300 border border-slate-800 hover:border-cyan-500/40 transition-colors"
+          >
+            n8n Workflow Automation
+          </button>
+          <button
+            onClick={() => navigateTo('service_sales')}
+            className="text-xs px-3 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-cyan-300 border border-slate-800 hover:border-cyan-500/40 transition-colors"
+          >
+            FMCG Sales Reporting
+          </button>
+        </div>
+
         {/* Sliding Services Carousel */}
         {totalItems === 0 ? (
           <div className="p-12 bg-slate-900/50 border border-slate-800 rounded-2xl text-center text-slate-400 text-sm">
@@ -219,7 +254,6 @@ export const ServicesSection: React.FC = () => {
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
           >
-            {/* Sliding Track */}
             <div
               className="flex transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform"
               style={{
@@ -232,66 +266,101 @@ export const ServicesSection: React.FC = () => {
                 return (
                   <div
                     key={`${service.id}-${idx}`}
-                    className="px-3 shrink-0 flex"
+                    className="px-2.5 shrink-0 flex"
                     style={{ width: `${100 / itemsPerView}%` }}
                   >
-                    <div className="w-full group relative flex flex-col justify-between p-6 bg-slate-900/60 hover:bg-slate-900/90 border border-slate-800/90 hover:border-cyan-500/40 rounded-2xl transition-all duration-300 hover:shadow-xl hover:shadow-cyan-950/20">
+                    <div className="w-full group relative flex flex-col justify-between p-5 sm:p-6 bg-slate-900/65 hover:bg-slate-900/95 border border-slate-800/90 hover:border-cyan-500/40 rounded-2xl transition-all duration-300 hover:shadow-xl hover:shadow-cyan-950/20">
                       <div>
-                        {/* Category tag & Animated Workflow Icon */}
                         <div className="flex items-center justify-between gap-4 mb-4">
                           <WorkflowIconNode icon={IconComponent} delayIndex={idx} tone="cyan" />
-                          <span className="text-xs font-mono text-slate-400">
+                          <span className="text-[11px] font-mono text-slate-400 px-2 py-0.5 rounded bg-slate-950 border border-slate-800">
                             {service.category}
                           </span>
                         </div>
 
-                        {/* Title */}
-                        <h3 className="text-xl font-bold text-white group-hover:text-cyan-300 transition-colors mb-2">
+                        <h3 className="text-lg sm:text-xl font-bold text-white group-hover:text-cyan-300 transition-colors mb-2">
                           {service.title}
                         </h3>
 
-                        {/* Description */}
-                        <p className="text-sm text-slate-300 leading-relaxed mb-5 line-clamp-3">
+                        <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mb-4 line-clamp-2">
                           {service.description}
                         </p>
 
-                        {/* Deliverables List */}
-                        {service.deliverables && service.deliverables.length > 0 && (
-                          <div className="space-y-2 mb-6 pt-4 border-t border-slate-800/80">
-                            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                              Key Deliverables:
-                            </span>
-                            {service.deliverables.slice(0, 3).map((item, dIdx) => (
-                              <div key={dIdx} className="flex items-start gap-2 text-xs text-slate-300">
-                                <CheckCircle className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
-                                <span className="line-clamp-1">{item}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                        {/* Structured Audit Fields: Problem / Solution / Expected Result / Tools / Scope */}
+                        <div className="space-y-2.5 pt-3 border-t border-slate-800/80 text-xs">
+                          {service.problem && (
+                            <div className="p-2.5 rounded-xl bg-rose-950/20 border border-rose-500/20">
+                              <span className="text-[10px] font-mono uppercase tracking-wider text-rose-400 font-semibold block mb-0.5">
+                                Problem
+                              </span>
+                              <p className="text-slate-300 line-clamp-2 leading-snug">
+                                {service.problem}
+                              </p>
+                            </div>
+                          )}
+
+                          {service.solution && (
+                            <div className="p-2.5 rounded-xl bg-cyan-950/20 border border-cyan-500/20">
+                              <span className="text-[10px] font-mono uppercase tracking-wider text-cyan-400 font-semibold block mb-0.5">
+                                Solution
+                              </span>
+                              <p className="text-slate-300 line-clamp-2 leading-snug">
+                                {service.solution}
+                              </p>
+                            </div>
+                          )}
+
+                          {service.expected_result && (
+                            <div className="p-2.5 rounded-xl bg-emerald-950/20 border border-emerald-500/20">
+                              <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-400 font-semibold block mb-0.5">
+                                Expected Result
+                              </span>
+                              <p className="text-slate-200 line-clamp-2 leading-snug">
+                                {service.expected_result}
+                              </p>
+                            </div>
+                          )}
+
+                          {service.tools && service.tools.length > 0 && (
+                            <div className="flex flex-wrap items-center gap-1 pt-1">
+                              <Wrench className="w-3 h-3 text-slate-400 mr-0.5 shrink-0" />
+                              {service.tools.slice(0, 4).map((tool, tIdx) => (
+                                <span
+                                  key={tIdx}
+                                  className="px-2 py-0.5 bg-slate-950 border border-slate-800 rounded text-[10px] font-mono text-cyan-300"
+                                >
+                                  {tool}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+
+                          {service.scope && (
+                            <div className="flex items-start gap-1.5 text-[11px] text-slate-400 pt-1">
+                              <Clock className="w-3.5 h-3.5 text-purple-400 shrink-0 mt-0.5" />
+                              <span className="line-clamp-2">{service.scope}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                       {/* Bottom Card Actions */}
-                      <div className="pt-4 border-t border-slate-800/60 mt-auto flex items-center justify-between gap-3">
+                      <div className="pt-4 mt-4 border-t border-slate-800/60 flex flex-wrap items-center justify-between gap-2">
                         <button
                           onClick={() => handleInquire(service.title)}
-                          className="btn-lighting inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500/15 hover:bg-cyan-400 text-xs font-semibold text-cyan-300 hover:text-slate-950 border border-cyan-500/35 transition-all"
+                          className="btn-lighting inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-cyan-500/15 hover:bg-cyan-400 text-xs font-semibold text-cyan-300 hover:text-slate-950 border border-cyan-500/35 transition-all"
                         >
-                          <span>Request Proposal</span>
+                          <span>Contact / Proposal</span>
                           <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                         </button>
-                        {service.link_url && (
-                          <a
-                            href={service.link_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="btn-lighting inline-flex items-center gap-1 text-[11px] font-mono text-cyan-300 hover:text-white bg-cyan-950/70 hover:bg-cyan-900 px-2.5 py-1 rounded-lg border border-cyan-500/40 transition-colors"
-                            title="Open service link"
-                          >
-                            <span>Link</span>
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-                        )}
+
+                        <button
+                          onClick={() => navigateTo(resolveServiceRoute(service.case_study_slug))}
+                          className="btn-glow-soft inline-flex items-center gap-1 text-[11px] font-mono text-slate-300 hover:text-cyan-300 bg-slate-950 hover:bg-slate-800 px-2.5 py-1.5 rounded-lg border border-slate-800 transition-colors"
+                        >
+                          <span>Demo / Case</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -299,7 +368,6 @@ export const ServicesSection: React.FC = () => {
               })}
             </div>
 
-            {/* Carousel Dot Indicators */}
             {totalItems > 1 && (
               <div className="flex items-center justify-center gap-1.5 mt-8">
                 {filtered.map((_, idx) => (

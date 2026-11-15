@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { AppRoute, ROUTE_META_MAP, resolveRouteFromPathname } from '../data/seoRoutes';
 
-export type AppRoute = 'home' | 'credentials' | 'admin_login' | 'admin_dashboard';
+export type { AppRoute };
 
 interface NavigationContextType {
   route: AppRoute;
@@ -15,34 +16,25 @@ interface NavigationContextType {
 const NavigationContext = createContext<NavigationContextType | undefined>(undefined);
 
 export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const getInitialRoute = (): { route: AppRoute; tab: string } => {
-    const path = window.location.pathname;
-    const hash = window.location.hash.replace('#', '');
-
-    if (path.startsWith('/admin/login') || hash === 'admin/login') {
-      return { route: 'admin_login', tab: 'dashboard' };
+  const getInitialState = () => {
+    if (typeof window === 'undefined') {
+      return { route: 'home' as AppRoute, adminTab: 'dashboard' };
     }
-    if (path.startsWith('/admin') || hash.startsWith('admin')) {
-      const parts = hash.split('/');
-      const tab = parts[1] || 'dashboard';
-      return { route: 'admin_dashboard', tab };
-    }
-    if (hash === 'credentials' || hash.startsWith('credentials') || hash === 'experience' || hash === 'education' || hash === 'achievements') {
-      return { route: 'credentials', tab: 'experience' };
-    }
-    return { route: 'home', tab: 'dashboard' };
+    return resolveRouteFromPathname(window.location.pathname, window.location.hash);
   };
 
-  const initial = getInitialRoute();
+  const initial = getInitialState();
   const [route, setRoute] = useState<AppRoute>(initial.route);
-  const [activeAdminTab, setActiveAdminTab] = useState<string>(initial.tab);
-  const [activeCredentialsTab, setActiveCredentialsTab] = useState<'experience' | 'education' | 'achievements' | 'certifications'>('experience');
+  const [activeAdminTab, setActiveAdminTab] = useState<string>(initial.adminTab);
+  const [activeCredentialsTab, setActiveCredentialsTab] = useState<
+    'experience' | 'education' | 'achievements' | 'certifications'
+  >('experience');
 
   useEffect(() => {
     const handlePopState = () => {
-      const current = getInitialRoute();
+      const current = resolveRouteFromPathname(window.location.pathname, window.location.hash);
       setRoute(current.route);
-      setActiveAdminTab(current.tab);
+      setActiveAdminTab(current.adminTab);
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -56,32 +48,41 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const navigateTo = (newRoute: AppRoute, tab = 'dashboard') => {
     setRoute(newRoute);
+
     if (newRoute === 'admin_dashboard') {
       setActiveAdminTab(tab);
       window.history.pushState({}, '', `/admin#${tab}`);
     } else if (newRoute === 'admin_login') {
       window.history.pushState({}, '', '/admin/login');
-    } else if (newRoute === 'credentials') {
-      window.history.pushState({}, '', '/#credentials');
     } else {
-      window.history.pushState({}, '', '/');
+      const targetPath = ROUTE_META_MAP[newRoute]?.path || '/';
+      window.history.pushState({}, '', targetPath);
     }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const scrollToSection = (sectionId: string) => {
-    if (sectionId === 'experience' || sectionId === 'education' || sectionId === 'achievements' || sectionId === 'certifications') {
-      setActiveCredentialsTab(sectionId as any);
+    if (
+      sectionId === 'experience' ||
+      sectionId === 'education' ||
+      sectionId === 'achievements' ||
+      sectionId === 'certifications'
+    ) {
+      setActiveCredentialsTab(sectionId);
       navigateTo('credentials');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
     if (route !== 'home') {
-      navigateTo('home');
+      setRoute('home');
+      window.history.pushState({}, '', '/');
       setTimeout(() => {
         const el = document.getElementById(sectionId);
         if (el) {
           el.scrollIntoView({ behavior: 'smooth' });
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         }
       }, 150);
     } else {

@@ -1,25 +1,39 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mahdi Hasan - Redirecting...</title>
-    <script>
-      // Single Page Application redirect for GitHub Pages
-      // Redirects any 404 URL back to index.html preserving path/hash
-      var pathSegmentsToKeep = 0;
-      var l = window.location;
-      var redirectPath = l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/');
-      l.replace(
-        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
-        l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?p=/' +
-        redirectPath.replace(/&/g, '~and~') +
-        (l.search ? '&q=' + l.search.slice(1).replace(/&/g, '~and~') : '') +
-        l.hash
-      );
-    </script>
+    <title>404 Page Not Found | Mahdi Hasan</title>
+    <meta name="description" content="The requested page could not be found on mahdihasan.pages.dev." />
+    <meta name="robots" content="noindex, follow" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
   </head>
-  <body style="background-color: #020617; color: #94a3b8; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0;">
-    <p>Redirecting to Mahdi Hasan Portfolio...</p>
+  <body style="margin:0;background:#020617;color:#f1f5f9;font-family:system-ui,-apple-system,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;">
+    <main style="max-width:520px;width:100%;background:#0f172a;border:1px solid #1e293b;border-radius:20px;padding:36px 28px;text-align:center;">
+      <p style="margin:0 0 8px;font-size:12px;font-family:monospace;letter-spacing:0.12em;text-transform:uppercase;color:#fb7185;">
+        HTTP 404 · Not Found
+      </p>
+      <h1 style="margin:0 0 12px;font-size:28px;font-weight:800;color:#ffffff;">
+        Page Not Found
+      </h1>
+      <p style="margin:0 0 24px;font-size:14px;line-height:1.6;color:#94a3b8;">
+        The URL you requested does not exist on Mahdi Hasan's portfolio. Use one of the verified pages below.
+      </p>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;">
+        <a href="/" style="padding:10px 18px;border-radius:10px;background:#22d3ee;color:#020617;font-weight:700;font-size:13px;text-decoration:none;">
+          Back to Home
+        </a>
+        <a href="/services/" style="padding:10px 18px;border-radius:10px;background:#1e293b;color:#f8fafc;font-weight:600;font-size:13px;text-decoration:none;border:1px solid #334155;">
+          Explore Services
+        </a>
+        <a href="/case-studies/" style="padding:10px 18px;border-radius:10px;background:#020617;color:#22d3ee;font-weight:600;font-size:13px;text-decoration:none;border:1px solid #1e293b;">
+          Case Studies
+        </a>
+        <a href="/contact/" style="padding:10px 18px;border-radius:10px;background:#020617;color:#cbd5e1;font-weight:600;font-size:13px;text-decoration:none;border:1px solid #1e293b;">
+          Contact
+        </a>
+      </div>
+    </main>
   </body>
 </html>

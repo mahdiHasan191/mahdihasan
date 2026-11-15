@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useData } from '../../context/DataContext';
+import { useNavigation } from '../../context/NavigationContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { Project } from '../../types';
 import { ProjectModal } from './ProjectModal';
@@ -9,10 +10,13 @@ import {
   ChevronRight,
   Pause,
   Play,
+  ArrowRight,
+  Clock,
 } from 'lucide-react';
 
 export const PortfolioSection: React.FC = () => {
   const { projects } = useData();
+  const { navigateTo } = useNavigation();
   const { t, formatNumber, language } = useLanguage();
   const [filter, setFilter] = useState<'All' | 'Completed' | 'Learning'>('All');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -37,7 +41,6 @@ export const PortfolioSection: React.FC = () => {
     setCurrentIndex(0);
   };
 
-  // Responsive itemsPerView — compact gallery sizing while guaranteeing continuous sliding
   useEffect(() => {
     const updateItemsPerView = () => {
       const width = window.innerWidth;
@@ -46,9 +49,9 @@ export const PortfolioSection: React.FC = () => {
       } else if (width < 1024) {
         setItemsPerView(totalItems >= 3 ? 2 : 1);
       } else if (width < 1280) {
-        setItemsPerView(totalItems >= 4 ? 3 : (totalItems >= 2 ? 2 : 1));
+        setItemsPerView(totalItems >= 4 ? 3 : totalItems >= 2 ? 2 : 1);
       } else {
-        setItemsPerView(totalItems >= 5 ? 4 : (totalItems >= 4 ? 3 : (totalItems >= 2 ? 2 : 1)));
+        setItemsPerView(totalItems >= 5 ? 4 : totalItems >= 4 ? 3 : totalItems >= 2 ? 2 : 1);
       }
     };
 
@@ -57,17 +60,14 @@ export const PortfolioSection: React.FC = () => {
     return () => window.removeEventListener('resize', updateItemsPerView);
   }, [totalItems]);
 
-  // Infinite display list (tripled for continuous seamless auto-slide)
-  const displayList =
-    totalItems > 1 ? [...filtered, ...filtered, ...filtered] : filtered;
+  const displayList = totalItems > 1 ? [...filtered, ...filtered, ...filtered] : filtered;
 
-  // Auto-slide effect (every 3.2s when not paused)
   useEffect(() => {
     if (isPaused || totalItems <= 1) return;
 
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % totalItems);
-    }, 3200);
+    }, 3400);
 
     return () => clearInterval(timer);
   }, [isPaused, totalItems]);
@@ -101,29 +101,34 @@ export const PortfolioSection: React.FC = () => {
   };
 
   return (
-    <section id="portfolio" className="py-14 sm:py-16 bg-slate-950 border-t border-slate-900 relative overflow-hidden">
+    <section
+      id="portfolio"
+      className="py-16 sm:py-20 bg-slate-950 border-t border-slate-900 relative overflow-hidden"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Compact Section Header */}
+        {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-7">
           <div>
             <div className="text-xs font-semibold tracking-wider uppercase text-cyan-400 mb-1.5 flex items-center gap-2">
-              <span>{t('portfolio.kicker')}</span>
-              <span className="inline-flex items-center gap-1 text-[10px] font-mono bg-cyan-950/80 text-cyan-300 border border-cyan-800/60 px-2 py-0.5 rounded-full animate-pulse">
-                Auto-Slide &amp; Live Demo
+              <span>{t('portfolio.kicker', '03. Featured Case Studies & Workflows')}</span>
+              <span className="inline-flex items-center gap-1 text-[10px] font-mono bg-cyan-950/80 text-cyan-300 border border-cyan-800/60 px-2 py-0.5 rounded-full">
+                Workflow Diagrams &amp; Demos
               </span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight pb-0.5 animate-section-heading">
-              {t('portfolio.headline')}
+              {t('portfolio.headline', 'Applied AI & Automation Case Studies')}
             </h2>
             <div className="relative w-24 sm:w-32 h-[3px] rounded-full bg-slate-800/90 overflow-hidden mt-2">
               <div className="animate-heading-beam w-12 h-full bg-gradient-to-r from-transparent via-cyan-400 to-emerald-400" />
             </div>
             <p className="mt-2 text-sm text-slate-300 max-w-2xl">
-              {t('portfolio.subtitle')}
+              {t(
+                'portfolio.subtitle',
+                'Realistic blueprints for FMCG sales reporting, lead capture & follow-up, and MCP business assistants — transparently marked as Sample Project or Expected Workflow.'
+              )}
             </p>
           </div>
 
-          {/* Interactive Filter Buttons and Carousel Controls */}
           <div className="flex flex-wrap items-center gap-2.5 shrink-0">
             <div className="flex items-center gap-1 p-1 bg-slate-900 border border-slate-800 rounded-xl">
               <button
@@ -134,7 +139,7 @@ export const PortfolioSection: React.FC = () => {
                     : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                 }`}
               >
-                {t('portfolio.filter_all')} ({formatNumber(publishedProjects.length)})
+                {t('portfolio.filter_all', 'All')} ({formatNumber(publishedProjects.length)})
               </button>
               <button
                 onClick={() => handleFilterChange('Completed')}
@@ -144,7 +149,7 @@ export const PortfolioSection: React.FC = () => {
                     : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                 }`}
               >
-                {t('portfolio.filter_completed')} (
+                {t('portfolio.filter_completed', 'Workflows')} (
                 {formatNumber(publishedProjects.filter((p) => p.category === 'Completed').length)})
               </button>
               <button
@@ -155,12 +160,11 @@ export const PortfolioSection: React.FC = () => {
                     : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                 }`}
               >
-                {t('portfolio.filter_learning')} (
+                {t('portfolio.filter_learning', 'R&D')} (
                 {formatNumber(publishedProjects.filter((p) => p.category === 'Learning').length)})
               </button>
             </div>
 
-            {/* Navigation Controls */}
             {totalItems > 1 && (
               <div className="flex items-center gap-1 p-1 bg-slate-900 border border-slate-800 rounded-xl">
                 <button
@@ -187,13 +191,21 @@ export const PortfolioSection: React.FC = () => {
                 </button>
               </div>
             )}
+
+            <button
+              onClick={() => navigateTo('case_studies')}
+              className="btn-glow-soft inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-cyan-300 bg-slate-900 border border-cyan-500/30 hover:border-cyan-400 rounded-xl transition-colors"
+            >
+              <span>Full Case Studies</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
 
-        {/* Compact Sliding Projects Carousel */}
+        {/* Square Sliding Projects Carousel */}
         {totalItems === 0 ? (
           <div className="p-10 bg-slate-900/50 border border-slate-800 rounded-2xl text-center text-slate-400 text-sm">
-            No projects found under this category.
+            No case studies found under this category.
           </div>
         ) : (
           <div
@@ -203,7 +215,6 @@ export const PortfolioSection: React.FC = () => {
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
           >
-            {/* Sliding Track */}
             <div
               className="flex transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform"
               style={{
@@ -220,17 +231,18 @@ export const PortfolioSection: React.FC = () => {
                     onClick={() => openProjectModal(project, 'demo')}
                     className="w-full max-w-[300px] sm:max-w-none aspect-square group cursor-pointer flex flex-col justify-between bg-slate-900/75 hover:bg-slate-900 border border-slate-800/90 hover:border-cyan-500/50 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-cyan-950/30"
                   >
-                    {/* Square Card Upper Visual Preview */}
-                    <div className="relative h-[46%] w-full overflow-hidden bg-slate-950 shrink-0">
+                    <div className="relative h-[45%] w-full overflow-hidden bg-slate-950 shrink-0">
                       <img
                         src={project.image_url}
-                        alt={project.title}
+                        alt={`${project.title} automation workflow diagram preview`}
+                        loading="lazy"
+                        decoding="async"
                         referrerPolicy="no-referrer"
                         className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 will-change-transform"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/25 to-transparent" />
 
-                      {/* Status Badge */}
+                      {/* Honest Status Badge */}
                       <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
                         <span
                           className={`text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded border backdrop-blur-md ${
@@ -239,11 +251,10 @@ export const PortfolioSection: React.FC = () => {
                               : 'bg-purple-950/85 text-purple-300 border-purple-500/40'
                           }`}
                         >
-                          {project.category}
+                          {project.result_label || project.category}
                         </span>
                       </div>
 
-                      {/* External Link Shortcut */}
                       <div className="absolute top-2.5 right-2.5 flex items-center gap-1">
                         {(project.link_url || project.live_url) && (
                           <a
@@ -260,18 +271,17 @@ export const PortfolioSection: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Square Card Lower Content & Actions */}
                     <div className="p-3 sm:p-3.5 flex-1 min-h-0 flex flex-col justify-between gap-2">
                       <div className="min-h-0">
-                        <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mb-1 font-mono">
+                        <div className="flex items-center justify-between gap-1.5 text-[10px] text-slate-400 mb-1 font-mono">
                           <span className="truncate text-cyan-400 font-semibold">
-                            {project.tech_stack?.[0] || 'Automation'}
+                            {project.tech_stack?.slice(0, 2).join(' · ') || 'Automation'}
                           </span>
-                          {project.tech_stack?.[1] && (
-                            <>
-                              <span>·</span>
-                              <span className="truncate">{project.tech_stack[1]}</span>
-                            </>
+                          {project.time_saved && (
+                            <span className="inline-flex items-center gap-1 text-emerald-300 shrink-0">
+                              <Clock className="w-2.5 h-2.5" />
+                              <span className="truncate max-w-[90px]">{project.time_saved}</span>
+                            </span>
                           )}
                         </div>
 
@@ -284,7 +294,6 @@ export const PortfolioSection: React.FC = () => {
                         </p>
                       </div>
 
-                      {/* Actions Footer: Live Demo + Details */}
                       <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between gap-2 shrink-0">
                         <button
                           type="button"
@@ -295,7 +304,7 @@ export const PortfolioSection: React.FC = () => {
                           className="btn-lighting inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-400 text-cyan-300 hover:text-slate-950 border border-cyan-400/50 text-[11px] font-semibold transition-all"
                         >
                           <Play className="w-2.5 h-2.5 fill-current" />
-                          <span>{isBn ? 'লাইভ ডেমো' : 'Live Demo'}</span>
+                          <span>{isBn ? 'ডেমো ডায়াগ্রাম' : 'Workflow Demo'}</span>
                         </button>
 
                         <button
@@ -306,7 +315,7 @@ export const PortfolioSection: React.FC = () => {
                           }}
                           className="btn-glow-soft px-2 py-1 rounded-md text-[11px] font-semibold text-slate-300 hover:text-cyan-300 border border-slate-800 hover:border-cyan-500/40 transition-colors"
                         >
-                          {isBn ? 'বিস্তারিত →' : 'Details →'}
+                          {isBn ? 'কেস স্টাডি →' : 'Case Study →'}
                         </button>
                       </div>
                     </div>
@@ -315,7 +324,6 @@ export const PortfolioSection: React.FC = () => {
               ))}
             </div>
 
-            {/* Carousel Dot Indicators */}
             {totalItems > 1 && (
               <div className="flex items-center justify-center gap-1.5 mt-5">
                 {filtered.map((_, idx) => (
@@ -335,7 +343,6 @@ export const PortfolioSection: React.FC = () => {
           </div>
         )}
 
-        {/* Project Modal Dialog (with Case Study & Interactive Live Demo) */}
         <ProjectModal
           project={selectedProject}
           initialTab={modalInitialTab}

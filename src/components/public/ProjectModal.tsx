@@ -12,6 +12,7 @@ import {
   Cpu,
   Zap,
   ArrowRight,
+  Clock,
 } from 'lucide-react';
 
 interface ProjectModalProps {
@@ -70,14 +71,12 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
-      {/* Modal Backdrop Click */}
       <div className="fixed inset-0 -z-10" onClick={onClose} />
 
-      {/* Modal Content Container */}
       <div className="relative w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden my-8 max-h-[90vh] flex flex-col">
-        {/* Modal Header with Case Study / Live Demo Tabs */}
+        {/* Modal Header */}
         <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 border-b border-slate-800 bg-slate-900/95 sticky top-0 z-10 backdrop-blur">
-          <div className="flex items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2.5">
             <span
               className={`text-xs font-mono font-semibold px-2.5 py-1 rounded border ${
                 project.category === 'Completed'
@@ -85,8 +84,15 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                   : 'bg-purple-500/10 text-purple-400 border-purple-500/30'
               }`}
             >
-              {project.category}
+              {project.result_label || project.category}
             </span>
+
+            {project.time_saved && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2.5 py-1 rounded bg-slate-950 text-cyan-300 border border-slate-800">
+                <Clock className="w-3 h-3" />
+                <span>{project.time_saved}</span>
+              </span>
+            )}
 
             <div className="flex items-center gap-1 p-1 bg-slate-950 border border-slate-800 rounded-xl">
               <button
@@ -110,7 +116,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                 }`}
               >
                 <Play className="w-3 h-3 fill-current" />
-                <span>Live Demo</span>
+                <span>Workflow Diagram</span>
               </button>
             </div>
           </div>
@@ -127,15 +133,14 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
         {/* Scrollable Content */}
         <div className="p-5 sm:p-7 space-y-6 overflow-y-auto">
           {activeTab === 'demo' ? (
-            /* ================= INTERACTIVE PROJECT LIVE DEMO TAB ================= */
             <div className="space-y-5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <span className="text-[11px] font-mono uppercase tracking-wider text-cyan-400 font-semibold">
-                    Interactive Automation Preview
+                    {project.result_label || 'Expected Workflow'} Architecture
                   </span>
                   <h2 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight mt-0.5">
-                    {project.title} — Live Demo
+                    {project.title}
                   </h2>
                 </div>
 
@@ -146,35 +151,32 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                   className="btn-lighting inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/35 border border-cyan-400/50 text-xs font-semibold text-cyan-300 transition-colors disabled:opacity-60 self-start sm:self-auto"
                 >
                   <RotateCcw className={`w-3.5 h-3.5 ${isRunningDemo ? 'animate-spin' : ''}`} />
-                  <span>{isRunningDemo ? 'Running Workflow...' : 'Run Demo Again'}</span>
+                  <span>{isRunningDemo ? 'Simulating Steps...' : 'Replay Workflow'}</span>
                 </button>
               </div>
 
-              {/* Interactive 3-Step Visual Workflow Simulation */}
               <div className="p-4 sm:p-5 rounded-2xl bg-[#070e1d] border border-slate-800 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:14px_14px] space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-stretch">
-                  {/* Step 1: Input Trigger */}
                   <div
                     className={`p-4 rounded-xl border transition-all duration-300 ${
                       demoStep >= 1
-                        ? 'bg-slate-900/95 border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.18)]'
+                        ? 'bg-slate-900/95 border-rose-500/40 shadow-[0_0_18px_rgba(244,63,94,0.14)]'
                         : 'bg-slate-950/70 border-slate-800 opacity-60'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <span className="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold text-emerald-400">
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold text-rose-400">
                         <Zap className="w-3.5 h-3.5" />
-                        1. INPUT TRIGGER
+                        1. BEFORE / TRIGGER
                       </span>
-                      {demoStep >= 1 && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
+                      {demoStep >= 1 && <CheckCircle2 className="w-4 h-4 text-rose-400" />}
                     </div>
-                    <p className="text-xs font-semibold text-white mb-1">Source Data / Event</p>
-                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                    <p className="text-xs font-semibold text-white mb-1">Problem &amp; Input Event</p>
+                    <p className="text-[11px] text-slate-300 leading-relaxed">
                       {project.challenge || project.short_description}
                     </p>
                   </div>
 
-                  {/* Step 2: MH Automation Processing */}
                   <div
                     className={`p-4 rounded-xl border transition-all duration-300 ${
                       demoStep >= 2
@@ -192,12 +194,11 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                     <p className="text-xs font-semibold text-white mb-1">
                       {project.tech_stack?.slice(0, 3).join(' · ') || 'Automated Workflow'}
                     </p>
-                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                    <p className="text-[11px] text-slate-300 leading-relaxed">
                       {project.solution || project.short_description}
                     </p>
                   </div>
 
-                  {/* Step 3: Live Output Result */}
                   <div
                     className={`p-4 rounded-xl border transition-all duration-300 ${
                       demoStep >= 3
@@ -208,18 +209,19 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                     <div className="flex items-center justify-between mb-2">
                       <span className="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold text-emerald-300">
                         <Sparkles className="w-3.5 h-3.5" />
-                        3. OUTPUT DELIVERED
+                        3. EXPECTED OUTCOME
                       </span>
                       {demoStep >= 3 && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
                     </div>
-                    <p className="text-xs font-semibold text-white mb-1">Business Result</p>
+                    <p className="text-xs font-semibold text-white mb-1">
+                      {project.result_label || 'Expected Workflow'}
+                    </p>
                     <p className="text-[11px] text-emerald-200/90 leading-relaxed">
-                      {project.outcome || 'Automated output synced and delivered successfully.'}
+                      {project.outcome || 'Automated output synced and delivered reliably.'}
                     </p>
                   </div>
                 </div>
 
-                {/* Live Result Summary Bar */}
                 <div className="pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-xs">
                   <div className="flex items-center gap-2 font-mono text-[11px]">
                     <span
@@ -229,9 +231,9 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                     />
                     <span className={demoStep >= 3 ? 'text-emerald-300 font-semibold' : 'text-cyan-300'}>
                       {demoStep === 0 && 'Initializing workflow trigger...'}
-                      {demoStep === 1 && 'Capturing source inputs & validating payload...'}
-                      {demoStep === 2 && 'Executing MH automation nodes & AI logic...'}
-                      {demoStep >= 3 && 'Demo Run Complete — Output Delivered in 1.6s'}
+                      {demoStep === 1 && 'Validating incoming sheet / inquiry payload...'}
+                      {demoStep === 2 && 'Running n8n nodes & AI logic...'}
+                      {demoStep >= 3 && 'Expected Workflow Sequence Complete'}
                     </span>
                   </div>
 
@@ -246,7 +248,6 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                 </div>
               </div>
 
-              {/* Project Image + Direct Links */}
               <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800">
                 <div className="flex flex-wrap gap-1.5">
                   {project.tech_stack?.map((tech, idx) => (
@@ -268,7 +269,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                       className="btn-lighting inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-slate-800 hover:bg-slate-700 rounded-xl border border-cyan-500/30 transition-colors"
                     >
                       <Github className="w-3.5 h-3.5" />
-                      <span>Source Code</span>
+                      <span>Repository</span>
                     </a>
                   )}
                   {externalDemoUrl && (
@@ -286,9 +287,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
               </div>
             </div>
           ) : (
-            /* ================= CASE STUDY OVERVIEW TAB ================= */
             <>
-              {/* Project Preview Image with Hyperlink */}
               {project.image_url && (
                 <div className="rounded-xl overflow-hidden border border-slate-800 aspect-video bg-slate-950 max-h-72 w-full relative group">
                   {externalDemoUrl ? (
@@ -301,7 +300,9 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                     >
                       <img
                         src={project.image_url}
-                        alt={project.title}
+                        alt={`${project.title} case study visual`}
+                        loading="lazy"
+                        decoding="async"
                         referrerPolicy="no-referrer"
                         className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
                       />
@@ -313,7 +314,9 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                   ) : (
                     <img
                       src={project.image_url}
-                      alt={project.title}
+                      alt={`${project.title} case study visual`}
+                      loading="lazy"
+                      decoding="async"
                       referrerPolicy="no-referrer"
                       className="w-full h-full object-cover object-center"
                     />
@@ -330,13 +333,12 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                 </p>
               </div>
 
-              {/* Deep Breakdown: Challenge, Solution, Outcome */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
                 {project.challenge && (
                   <div className="p-4 bg-slate-950 border border-slate-800/80 rounded-xl space-y-2">
                     <div className="flex items-center gap-2 text-rose-400 text-xs font-semibold uppercase tracking-wider">
                       <AlertCircle className="w-4 h-4" />
-                      <span>The Bottleneck</span>
+                      <span>Before Automation</span>
                     </div>
                     <p className="text-xs text-slate-300 leading-relaxed">{project.challenge}</p>
                   </div>
@@ -346,7 +348,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                   <div className="p-4 bg-slate-950 border border-slate-800/80 rounded-xl space-y-2">
                     <div className="flex items-center gap-2 text-cyan-400 text-xs font-semibold uppercase tracking-wider">
                       <Sparkles className="w-4 h-4" />
-                      <span>The Automation</span>
+                      <span>Automation Built</span>
                     </div>
                     <p className="text-xs text-slate-300 leading-relaxed">{project.solution}</p>
                   </div>
@@ -356,18 +358,17 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                   <div className="p-4 bg-slate-950 border border-slate-800/80 rounded-xl space-y-2">
                     <div className="flex items-center gap-2 text-emerald-400 text-xs font-semibold uppercase tracking-wider">
                       <CheckCircle2 className="w-4 h-4" />
-                      <span>Measurable Impact</span>
+                      <span>{project.result_label || 'Expected Workflow Impact'}</span>
                     </div>
                     <p className="text-xs text-slate-300 leading-relaxed">{project.outcome}</p>
                   </div>
                 )}
               </div>
 
-              {/* Tech Stack Chips */}
               {project.tech_stack && project.tech_stack.length > 0 && (
                 <div className="pt-2">
                   <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 block mb-2.5">
-                    Technologies & Protocols:
+                    Tools &amp; Integrations Used:
                   </span>
                   <div className="flex flex-wrap gap-2">
                     {project.tech_stack.map((tech, idx) => (
@@ -382,7 +383,6 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                 </div>
               )}
 
-              {/* External & Demo Links */}
               <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-slate-800">
                 <button
                   type="button"
@@ -390,7 +390,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                   className="btn-lighting inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-slate-950 bg-gradient-to-r from-cyan-400 to-emerald-400 hover:from-cyan-300 hover:to-emerald-300 rounded-xl transition-all"
                 >
                   <Play className="w-3.5 h-3.5 fill-current" />
-                  <span>Launch Interactive Demo</span>
+                  <span>View Workflow Diagram</span>
                 </button>
 
                 {project.github_url && (

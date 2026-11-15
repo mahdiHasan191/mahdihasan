@@ -65,6 +65,8 @@ export const AIAutomationMotionOverlay: React.FC = () => {
   const coreAuraId = `mhCoreAura-${uid}`;
   const textGradId = `mhTextGrad-${uid}`;
   const hubGradId = `mhHubGrad-${uid}`;
+  const hubClipId = `mhHubClip-${uid}`;
+  const scanBeamGradId = `mhScanBeam-${uid}`;
 
   const { language } = useLanguage();
   const { scrollToSection } = useNavigation();
@@ -88,7 +90,7 @@ export const AIAutomationMotionOverlay: React.FC = () => {
     <div
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      className="w-full sm:w-[430px] md:w-[470px] lg:w-[505px] sm:absolute sm:left-5 md:left-7 lg:left-10 sm:top-1/2 sm:-translate-y-1/2 z-30 pointer-events-auto"
+      className="w-full sm:w-[430px] md:w-[470px] lg:w-[505px] sm:absolute sm:left-4 md:left-7 lg:left-10 sm:top-1/2 sm:-translate-y-1/2 sm:scale-[0.78] md:scale-[0.9] lg:scale-100 sm:origin-left z-30 pointer-events-auto"
     >
       <div className="bg-transparent backdrop-blur-[2px] border border-cyan-500/20 rounded-2xl p-3 sm:p-4 space-y-2.5">
         {/* Top Bar */}
@@ -138,18 +140,26 @@ export const AIAutomationMotionOverlay: React.FC = () => {
                 </feMerge>
               </filter>
               <radialGradient id={coreAuraId} cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor="#22d3ee" stopOpacity="0.42" />
-                <stop offset="55%" stopColor="#10b981" stopOpacity="0.18" />
+                <stop offset="0%" stopColor="#22d3ee" stopOpacity="0.34" />
+                <stop offset="60%" stopColor="#10b981" stopOpacity="0.14" />
                 <stop offset="100%" stopColor="#0f172a" stopOpacity="0" />
               </radialGradient>
               <linearGradient id={textGradId} x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#ffffff" />
-                <stop offset="45%" stopColor="#67e8f9" />
+                <stop offset="48%" stopColor="#67e8f9" />
                 <stop offset="100%" stopColor="#34d399" />
               </linearGradient>
               <linearGradient id={hubGradId} x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#10b981" />
                 <stop offset="100%" stopColor="#38bdf8" />
+              </linearGradient>
+              <clipPath id={hubClipId}>
+                <rect x="134" y="106" width="88" height="78" rx="16" />
+              </clipPath>
+              <linearGradient id={scanBeamGradId} x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#22d3ee" stopOpacity="0" />
+                <stop offset="50%" stopColor="#22d3ee" stopOpacity="0.32" />
+                <stop offset="100%" stopColor="#34d399" stopOpacity="0" />
               </linearGradient>
             </defs>
 
@@ -367,8 +377,21 @@ export const AIAutomationMotionOverlay: React.FC = () => {
               </text>
             </g>
 
-            {/* ================= CENTRAL HUB: PRO SCI-FI QUANTUM ARC REACTOR & PLASMA SPARK CORE ================= */}
+            {/* ================= CENTRAL HUB: ENTERPRISE AI CORE TELEMETRY & HOLOGRAPHIC SCANNER ================= */}
             <g onClick={() => setActiveStage(1)} className="cursor-pointer">
+              {/* Outer Expanding Telemetry Pulse Ring */}
+              <rect
+                x="132"
+                y="104"
+                width="92"
+                height="82"
+                rx="18"
+                fill="none"
+                stroke="#22d3ee"
+                strokeWidth="1.2"
+                className="animate-mh-telemetry-pulse"
+              />
+
               {/* Main Glowing Outer Hub Frame (Translucent Glass + Neon Gradient Border) */}
               <rect
                 x="134"
@@ -377,16 +400,38 @@ export const AIAutomationMotionOverlay: React.FC = () => {
                 height="78"
                 rx="16"
                 fill="#071122"
-                fillOpacity="0.72"
+                fillOpacity="0.78"
                 stroke={`url(#${hubGradId})`}
-                strokeWidth={activeStage === 1 ? '3' : '2.2'}
+                strokeWidth={activeStage === 1 ? '2.8' : '2'}
                 filter={`url(#${neonGlowId})`}
               />
 
-              {/* Multi-Layer Plasma Core Aura */}
-              <circle cx="178" cy="145" r="36" fill={`url(#${coreAuraId})`} />
+              {/* Clean Ambient Neural Core Aura */}
+              <circle cx="178" cy="145" r="34" fill={`url(#${coreAuraId})`} />
 
-              {/* Counter-Rotating Precision Quantum Orbital Rings around MH */}
+              {/* Smooth Holographic AI Scanline Beam clipped inside MH Core */}
+              <g clipPath={`url(#${hubClipId})`}>
+                <g className="animate-mh-scanline">
+                  <rect x="134" y="106" width="88" height="18" fill={`url(#${scanBeamGradId})`} />
+                  <line
+                    x1="138"
+                    y1="115"
+                    x2="218"
+                    y2="115"
+                    stroke="#67e8f9"
+                    strokeOpacity="0.55"
+                    strokeWidth="1"
+                  />
+                </g>
+              </g>
+
+              {/* Precision Executive Corner Reticle Brackets */}
+              <path d="M 142 121 L 142 114 L 149 114" fill="none" stroke="#38bdf8" strokeOpacity="0.65" strokeWidth="1.3" strokeLinecap="round" />
+              <path d="M 207 114 L 214 114 L 214 121" fill="none" stroke="#34d399" strokeOpacity="0.65" strokeWidth="1.3" strokeLinecap="round" />
+              <path d="M 142 169 L 142 176 L 149 176" fill="none" stroke="#38bdf8" strokeOpacity="0.65" strokeWidth="1.3" strokeLinecap="round" />
+              <path d="M 207 176 L 214 176 L 214 169" fill="none" stroke="#34d399" strokeOpacity="0.65" strokeWidth="1.3" strokeLinecap="round" />
+
+              {/* Counter-Rotating Precision Telemetry Arcs around MH */}
               <g className="animate-mh-orbit-cw">
                 <circle
                   cx="178"
@@ -394,9 +439,9 @@ export const AIAutomationMotionOverlay: React.FC = () => {
                   r="31"
                   fill="none"
                   stroke="#22d3ee"
-                  strokeOpacity="0.45"
-                  strokeWidth="1.15"
-                  strokeDasharray="16 8 4 8"
+                  strokeOpacity="0.38"
+                  strokeWidth="1.1"
+                  strokeDasharray="20 12 4 12"
                   strokeLinecap="round"
                 />
               </g>
@@ -407,9 +452,9 @@ export const AIAutomationMotionOverlay: React.FC = () => {
                   r="25"
                   fill="none"
                   stroke="#34d399"
-                  strokeOpacity="0.5"
+                  strokeOpacity="0.45"
                   strokeWidth="1"
-                  strokeDasharray="10 10 2 10"
+                  strokeDasharray="14 14"
                   strokeLinecap="round"
                 />
               </g>
@@ -426,129 +471,16 @@ export const AIAutomationMotionOverlay: React.FC = () => {
               <circle cx="222" cy="160" r="3.5" fill="#fbbf24" />
               <circle cx="222" cy="174" r="3.5" fill="#34d399" />
 
-              {/* Pro Dual-Stroke Plasma Arcs (Outer Neon Halo + White-Hot Arc Core) */}
-              <g filter={`url(#${neonGlowId})`}>
-                <path
-                  d="M 155 130 Q 148 122 141 114"
-                  fill="none"
-                  stroke="#22d3ee"
-                  strokeWidth="2.4"
-                  strokeLinecap="round"
-                  className="animate-spark-bolt-1"
-                />
-                <path
-                  d="M 155 130 Q 148 122 141 114"
-                  fill="none"
-                  stroke="#ffffff"
-                  strokeWidth="0.9"
-                  strokeLinecap="round"
-                  className="animate-spark-bolt-1"
-                />
-
-                <path
-                  d="M 201 130 Q 208 122 215 114"
-                  fill="none"
-                  stroke="#34d399"
-                  strokeWidth="2.4"
-                  strokeLinecap="round"
-                  className="animate-spark-bolt-2"
-                />
-                <path
-                  d="M 201 130 Q 208 122 215 114"
-                  fill="none"
-                  stroke="#ffffff"
-                  strokeWidth="0.9"
-                  strokeLinecap="round"
-                  className="animate-spark-bolt-2"
-                />
-
-                <path
-                  d="M 155 160 Q 148 168 141 176"
-                  fill="none"
-                  stroke="#38bdf8"
-                  strokeWidth="2.4"
-                  strokeLinecap="round"
-                  className="animate-spark-bolt-3"
-                />
-                <path
-                  d="M 155 160 Q 148 168 141 176"
-                  fill="none"
-                  stroke="#ffffff"
-                  strokeWidth="0.9"
-                  strokeLinecap="round"
-                  className="animate-spark-bolt-3"
-                />
-
-                <path
-                  d="M 201 160 Q 208 168 215 176"
-                  fill="none"
-                  stroke="#a78bfa"
-                  strokeWidth="2.4"
-                  strokeLinecap="round"
-                  className="animate-spark-bolt-4"
-                />
-                <path
-                  d="M 201 160 Q 208 168 215 176"
-                  fill="none"
-                  stroke="#ffffff"
-                  strokeWidth="0.9"
-                  strokeLinecap="round"
-                  className="animate-spark-bolt-4"
-                />
-              </g>
-
-              {/* Micro Precision Plasma Embers */}
-              <circle
-                cx="164"
-                cy="130"
-                r="1.6"
-                fill="#e0f2fe"
-                className="animate-spark-fly"
-                style={{ '--sx': '-14px', '--sy': '-14px', animationDelay: '0s' } as React.CSSProperties}
-              />
-              <circle
-                cx="192"
-                cy="130"
-                r="1.6"
-                fill="#a7f3d0"
-                className="animate-spark-fly"
-                style={{ '--sx': '14px', '--sy': '-14px', animationDelay: '0.4s' } as React.CSSProperties}
-              />
-              <circle
-                cx="178"
-                cy="126"
-                r="1.4"
-                fill="#ffffff"
-                className="animate-spark-fly"
-                style={{ '--sx': '0px', '--sy': '-17px', animationDelay: '0.8s' } as React.CSSProperties}
-              />
-              <circle
-                cx="164"
-                cy="160"
-                r="1.6"
-                fill="#67e8f9"
-                className="animate-spark-fly"
-                style={{ '--sx': '-14px', '--sy': '14px', animationDelay: '0.6s' } as React.CSSProperties}
-              />
-              <circle
-                cx="192"
-                cy="160"
-                r="1.6"
-                fill="#fde68a"
-                className="animate-spark-fly"
-                style={{ '--sx': '14px', '--sy': '14px', animationDelay: '1.05s' } as React.CSSProperties}
-              />
-
               {/* Crisp, Mobile-Guaranteed Holographic MH Emblem */}
               <g className="animate-mh-surge">
                 <text
                   x="178"
-                  y="156"
+                  y="155"
                   textAnchor="middle"
                   fill={`url(#${textGradId})`}
                   stroke="#e0f2fe"
-                  strokeWidth="0.4"
-                  fontSize="29"
+                  strokeWidth="0.35"
+                  fontSize="28"
                   fontWeight="900"
                   letterSpacing="2"
                   fontFamily="var(--font-mono), monospace, sans-serif"

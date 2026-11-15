@@ -728,83 +728,84 @@ CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO auth
               </div>
             </div>
 
-            {/* Direct Export Files & Deployment Package */}
+            {/* Secure Live JSON Portfolio Backup & Deployment Guide */}
             <div className="p-6 bg-gradient-to-r from-slate-900 via-cyan-950/30 to-purple-950/30 border border-cyan-500/30 rounded-2xl space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <h3 className="text-base font-bold text-white flex items-center gap-2">
                     <Download className="w-5 h-5 text-cyan-400" />
-                    <span>Direct Export Files & Deployment Packages</span>
+                    <span>Live Portfolio JSON Backup &amp; Deployment Workflow</span>
                   </h3>
                   <p className="text-xs text-slate-300 mt-1">
-                    Download the pre-compiled, production-ready website or the full source code archive directly to your computer.
+                    Static public ZIP files have been removed for production security. Export a live JSON snapshot of your portfolio database or push commits to GitHub for automatic Cloudflare Pages deployment.
                   </p>
                 </div>
                 <span className="px-3 py-1 bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 rounded-full text-xs font-mono self-start sm:self-center">
-                  Production Build Ready
+                  Clean Repository Policy
                 </span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                {/* 1. Pre-built Dist ZIP */}
                 <div className="p-4 bg-slate-950/80 border border-slate-800 rounded-xl flex flex-col justify-between space-y-3">
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-bold text-white">Pre-Built Ready Website (dist)</span>
-                      <span className="text-[11px] font-mono text-cyan-400">~374 KB</span>
+                      <span className="text-sm font-bold text-white">Portfolio Database JSON Backup</span>
+                      <span className="text-[11px] font-mono text-cyan-400">Live Snapshot</span>
                     </div>
                     <p className="text-xs text-slate-400">
-                      Pre-compiled HTML, CSS, JavaScript, and assets with relative paths (<code className="text-cyan-300">base: './'</code>) and <code className="text-cyan-300">404.html</code> for GitHub Pages & Cloudflare Pages.
+                      Generates a clean JSON archive of your Profile, Services, Case Studies, Skills, Credentials, and SEO settings directly in-browser.
                     </p>
                   </div>
-                  <a
-                    href="./mahdi-hasan-dist-ready-to-deploy.zip"
-                    download="mahdi-hasan-dist-ready-to-deploy.zip"
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const backupPayload = {
+                        exportedAt: new Date().toISOString(),
+                        profile,
+                        settings,
+                        seo,
+                        services,
+                        projects,
+                        skills,
+                        experiences,
+                        educations,
+                        certifications,
+                        achievements,
+                      };
+                      const blob = new Blob([JSON.stringify(backupPayload, null, 2)], {
+                        type: 'application/json',
+                      });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `mahdi-hasan-portfolio-backup-${new Date().toISOString().slice(0, 10)}.json`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                      showSuccessBanner('Live JSON portfolio backup downloaded!');
+                    }}
                     className="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-semibold text-slate-950 bg-gradient-to-r from-cyan-400 to-cyan-300 hover:from-cyan-300 hover:to-cyan-200 rounded-xl shadow-md shadow-cyan-500/20 transition-all"
                   >
                     <Download className="w-4 h-4" />
-                    <span>Download Ready Website (ZIP)</span>
-                  </a>
+                    <span>Download JSON Data Backup</span>
+                  </button>
                 </div>
 
-                {/* 2. Full Source Code ZIP */}
-                <div className="p-4 bg-slate-950/80 border border-slate-800 rounded-xl flex flex-col justify-between space-y-3">
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-bold text-white">Complete Source Code</span>
-                      <span className="text-[11px] font-mono text-purple-400">~5.5 MB</span>
-                    </div>
-                    <p className="text-xs text-slate-400">
-                      Full React 19, TypeScript, Tailwind CSS, and Vite source files with complete components and configuration to commit to your GitHub repository.
-                    </p>
+                <div className="p-4 bg-slate-950/80 border border-slate-800 rounded-xl space-y-2 text-xs text-slate-300">
+                  <div className="font-semibold text-cyan-300">
+                    Cloudflare Pages &amp; Supabase Architecture
                   </div>
-                  <a
-                    href="./mahdi-hasan-full-source-code.zip"
-                    download="mahdi-hasan-full-source-code.zip"
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-semibold text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition-all"
-                  >
-                    <Download className="w-4 h-4 text-cyan-400" />
-                    <span>Download Full Source Code (ZIP)</span>
-                  </a>
+                  <ul className="list-disc list-inside space-y-1 text-slate-400 text-[11px] leading-relaxed">
+                    <li>
+                      <strong>CI/CD:</strong> Push to GitHub → Cloudflare Pages builds <code className="text-cyan-300">npm run build</code> with pre-rendered SEO routes in <code className="text-cyan-300">dist/</code>.
+                    </li>
+                    <li>
+                      <strong>Security:</strong> Strict Supabase Auth (<code className="text-cyan-300">mhmasum7619@gmail.com</code>) + <code className="text-cyan-300">public.is_admin()</code> RLS + Storage upload guard.
+                    </li>
+                    <li>
+                      <strong>SEO:</strong> Static HTML routes, <code className="text-cyan-300">sitemap.xml</code>, <code className="text-cyan-300">robots.txt</code>, and noindexed admin pages.
+                    </li>
+                  </ul>
                 </div>
-              </div>
-
-              {/* GitHub Pages & Cross-Device Fix Explanations */}
-              <div className="p-4 bg-slate-950/60 border border-slate-800/80 rounded-xl text-xs space-y-2 text-slate-300">
-                <div className="font-semibold text-cyan-300">
-                  💡 GitHub-এ ওয়েবসাইট সুন্দরভাবে লাইভ করার নিয়ম (Why it looks broken & how to fix):
-                </div>
-                <ul className="list-disc list-inside space-y-1 text-slate-400 text-[11px] leading-relaxed">
-                  <li>
-                    <strong>Relative Paths Fixed:</strong> <code className="text-slate-300">vite.config.ts</code>-এ <code className="text-cyan-300">base: './'</code> যোগ করা হয়েছে। আগে এটি না থাকায় GitHub Pages-এ CSS ও JavaScript ফাইলগুলো 404 পেত এবং সাইট ভাঙা দেখাত। এখন এটি সম্পূর্ণ ঠিক করা হয়েছে।
-                  </li>
-                  <li>
-                    <strong>SPA Routing Fixed:</strong> GitHub Pages-এর জন্য <code className="text-cyan-300">404.html</code> যোগ করা হয়েছে যাতে রিফ্রেশ বা ডিরেক্ট লিংকে কোনো 404 ইরর না আসে।
-                  </li>
-                  <li>
-                    <strong>অন্য ডিভাইসে ছবি না পাওয়া সমাধান:</strong> অ্যাডমিন প্যানেল থেকে ছবি আপলোড করার সময় <code className="text-cyan-300">Imgur</code>, <code className="text-cyan-300">Postimages</code> বা <code className="text-cyan-300">Cloudinary</code>-তে ছবি আপলোড করে তার Direct Image URL দিন। অথবা <code className="text-cyan-300">Supabase Hub</code> থেকে আপনার Supabase URL ও Key কানেক্ট করুন। তাহলে পৃথিবীর যেকোনো মোবাইল বা ল্যাপটপ থেকে লাইভ ছবি দেখতে পাবেন!
-                  </li>
-                </ul>
               </div>
             </div>
           </div>
@@ -907,20 +908,30 @@ CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO auth
 
                 {/* 16:9 Live Interactive Setup Preview Box */}
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                     <span className="font-mono text-cyan-400 font-semibold uppercase tracking-wider text-[11px]">
-                      Live 16:9 Frame Preview:
+                      Live Exact 16:9 Frame Preview:
                     </span>
                     <span className="text-[11px] text-slate-400">
-                      Mode: <strong className="text-white">{(profile.avatar_fit || 'contain') === 'contain' ? 'Full Image (No Crop)' : 'Fill Frame'}</strong> · Zoom: <strong className="text-white">{profile.avatar_scale ?? 100}%</strong>
+                      Mode:{' '}
+                      <strong className="text-white">
+                        {(profile.avatar_fit || 'cover') === 'cover' ? 'Fill Frame (16:9)' : 'Full Image (No Crop)'}
+                      </strong>{' '}
+                      · Zoom:{' '}
+                      <strong className="text-white">
+                        {(profile.avatar_fit || 'cover') === 'cover'
+                          ? Math.max(100, profile.avatar_scale ?? 100)
+                          : (profile.avatar_scale ?? 100)}
+                        %
+                      </strong>
                     </span>
                   </div>
 
-                  <div className="relative w-full aspect-[16/9] max-h-72 rounded-2xl overflow-hidden border-2 border-cyan-500/40 bg-slate-900 shadow-xl flex items-center justify-center">
+                  <div className="relative w-full max-w-[600px] aspect-[16/9] rounded-2xl overflow-hidden border-2 border-cyan-500/40 bg-slate-900 shadow-xl flex items-center justify-center">
                     {profile.avatar_url ? (
                       <>
                         {/* Ambient Backdrop */}
-                        {(profile.avatar_fit || 'contain') === 'contain' && (profile.avatar_bg || 'blur') === 'blur' && (
+                        {(profile.avatar_fit || 'cover') === 'contain' && (profile.avatar_bg || 'blur') === 'blur' && (
                           <div className="absolute inset-0 overflow-hidden pointer-events-none">
                             <img
                               src={profile.avatar_url}
@@ -937,20 +948,25 @@ CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO auth
                           src={profile.avatar_url}
                           alt="Setup Preview"
                           style={{
-                            objectFit: profile.avatar_fit || 'contain',
-                            objectPosition: `${profile.avatar_position_x ?? 50}% ${profile.avatar_position_y ?? 50}%`,
-                            transform: `scale(${(profile.avatar_scale ?? 100) / 100})`,
+                            objectFit: profile.avatar_fit || 'cover',
+                            objectPosition: `${profile.avatar_position_x ?? 50}% ${profile.avatar_position_y ?? 15}%`,
+                            transformOrigin: `${profile.avatar_position_x ?? 50}% ${profile.avatar_position_y ?? 15}%`,
+                            transform: `scale(${
+                              (profile.avatar_fit || 'cover') === 'cover'
+                                ? Math.max(100, profile.avatar_scale ?? 100) / 100
+                                : (profile.avatar_scale ?? 100) / 100
+                            })`,
                           }}
-                          className="relative z-10 w-full h-full transition-all duration-200"
+                          className="relative z-10 w-full h-full block transition-all duration-200"
                         />
                         <div className="absolute inset-0 z-20 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none" />
 
                         <div className="absolute bottom-2.5 left-3 z-30 flex items-center gap-2">
                           <span className="text-[10px] font-mono bg-slate-950/90 text-cyan-300 px-2 py-0.5 rounded border border-slate-800">
-                            Y-Pos: {profile.avatar_position_y ?? 50}%
+                            Pos: {profile.avatar_position_x ?? 50}% / {profile.avatar_position_y ?? 15}%
                           </span>
                           <span className="text-[10px] font-mono bg-slate-950/90 text-cyan-300 px-2 py-0.5 rounded border border-slate-800">
-                            Fit: {profile.avatar_fit || 'contain'}
+                            Fit: {profile.avatar_fit || 'cover'}
                           </span>
                         </div>
                       </>
@@ -965,9 +981,25 @@ CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO auth
 
                 {/* Setup Controls */}
                 <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl space-y-4">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-cyan-400 block font-mono">
-                    Image Framing & Alignment Controls
-                  </span>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-cyan-400 font-mono">
+                      Image Framing & Alignment Controls
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateProfile({
+                          avatar_fit: 'cover',
+                          avatar_position_x: 50,
+                          avatar_position_y: 15,
+                          avatar_scale: 100,
+                        })
+                      }
+                      className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 transition-colors"
+                    >
+                      Auto-Fit 16:9 (Zero Top Gap)
+                    </button>
+                  </div>
 
                   {/* 1. Fit Mode Toggle */}
                   <div className="space-y-1.5">
@@ -977,73 +1009,118 @@ CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO auth
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         type="button"
-                        onClick={() => updateProfile({ avatar_fit: 'contain' })}
+                        onClick={() =>
+                          updateProfile({
+                            avatar_fit: 'cover',
+                            avatar_scale: Math.max(100, profile.avatar_scale ?? 100),
+                            avatar_position_y: profile.avatar_position_y ?? 15,
+                          })
+                        }
                         className={`p-2.5 rounded-xl border text-xs font-semibold transition-all flex flex-col items-center gap-1 ${
-                          (profile.avatar_fit || 'contain') === 'contain'
+                          (profile.avatar_fit || 'cover') === 'cover'
                             ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500 shadow-md shadow-cyan-950/50'
                             : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
                         }`}
                       >
-                        <span>✓ Full Image View (No Cropping)</span>
+                        <span>✓ Fill Frame (16:9 Edge-to-Edge)</span>
                         <span className="text-[10px] font-normal text-slate-400">
-                          Shows 100% of entire photo without cutting edges
+                          Recommended: Fills entire 16:9 banner with zero top/side gaps
                         </span>
                       </button>
 
                       <button
                         type="button"
-                        onClick={() => updateProfile({ avatar_fit: 'cover' })}
+                        onClick={() => updateProfile({ avatar_fit: 'contain' })}
                         className={`p-2.5 rounded-xl border text-xs font-semibold transition-all flex flex-col items-center gap-1 ${
-                          profile.avatar_fit === 'cover'
+                          (profile.avatar_fit || 'cover') === 'contain'
                             ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500 shadow-md shadow-cyan-950/50'
                             : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
                         }`}
                       >
-                        <span>Fill Frame (Cover)</span>
+                        <span>Full Image View (No Cropping)</span>
                         <span className="text-[10px] font-normal text-slate-400">
-                          Fills 16:9 banner frame edge-to-edge
+                          Shows 100% of portrait photo with ambient blur fill
                         </span>
                       </button>
                     </div>
                   </div>
 
-                  {/* 2. Position Sliders */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-800">
+                  {/* 2. Position & Zoom Sliders */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-slate-800">
                     {/* Vertical Position (Y-Offset) */}
                     <div>
                       <div className="flex items-center justify-between text-xs mb-1">
-                        <span className="text-slate-300">Vertical Alignment (Y-Position):</span>
-                        <span className="font-mono text-cyan-400 text-[11px]">{profile.avatar_position_y ?? 50}%</span>
+                        <span className="text-slate-300">Vertical (Y-Pos):</span>
+                        <span className="font-mono text-cyan-400 text-[11px]">{profile.avatar_position_y ?? 15}%</span>
                       </div>
                       <input
                         type="range"
                         min="0"
                         max="100"
-                        value={profile.avatar_position_y ?? 50}
+                        value={profile.avatar_position_y ?? 15}
                         onChange={(e) => updateProfile({ avatar_position_y: Number(e.target.value) })}
                         className="w-full accent-cyan-400 cursor-pointer"
                       />
                       <div className="flex items-center justify-between gap-1 mt-1.5 text-[10px]">
                         <button
                           type="button"
-                          onClick={() => updateProfile({ avatar_position_y: 10 })}
+                          onClick={() => updateProfile({ avatar_position_y: 0 })}
                           className="px-2 py-0.5 rounded bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-400"
                         >
-                          Top (Face focus)
+                          Top (0%)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateProfile({ avatar_position_y: 20 })}
+                          className="px-2 py-0.5 rounded bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-400"
+                        >
+                          Face (20%)
                         </button>
                         <button
                           type="button"
                           onClick={() => updateProfile({ avatar_position_y: 50 })}
                           className="px-2 py-0.5 rounded bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-400"
                         >
-                          Center (50%)
+                          Mid (50%)
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Horizontal Position (X-Offset) */}
+                    <div>
+                      <div className="flex items-center justify-between text-xs mb-1">
+                        <span className="text-slate-300">Horizontal (X-Pos):</span>
+                        <span className="font-mono text-cyan-400 text-[11px]">{profile.avatar_position_x ?? 50}%</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={profile.avatar_position_x ?? 50}
+                        onChange={(e) => updateProfile({ avatar_position_x: Number(e.target.value) })}
+                        className="w-full accent-cyan-400 cursor-pointer"
+                      />
+                      <div className="flex items-center justify-between gap-1 mt-1.5 text-[10px]">
+                        <button
+                          type="button"
+                          onClick={() => updateProfile({ avatar_position_x: 25 })}
+                          className="px-2 py-0.5 rounded bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-400"
+                        >
+                          Left
                         </button>
                         <button
                           type="button"
-                          onClick={() => updateProfile({ avatar_position_y: 90 })}
+                          onClick={() => updateProfile({ avatar_position_x: 50 })}
                           className="px-2 py-0.5 rounded bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-400"
                         >
-                          Bottom
+                          Center
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateProfile({ avatar_position_x: 75 })}
+                          className="px-2 py-0.5 rounded bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-400"
+                        >
+                          Right
                         </button>
                       </div>
                     </div>
@@ -1052,37 +1129,48 @@ CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO auth
                     <div>
                       <div className="flex items-center justify-between text-xs mb-1">
                         <span className="text-slate-300">Scale / Zoom:</span>
-                        <span className="font-mono text-cyan-400 text-[11px]">{profile.avatar_scale ?? 100}%</span>
+                        <span className="font-mono text-cyan-400 text-[11px]">
+                          {(profile.avatar_fit || 'cover') === 'cover'
+                            ? Math.max(100, profile.avatar_scale ?? 100)
+                            : (profile.avatar_scale ?? 100)}
+                          %
+                        </span>
                       </div>
                       <input
                         type="range"
-                        min="50"
+                        min={(profile.avatar_fit || 'cover') === 'cover' ? '100' : '50'}
                         max="150"
-                        value={profile.avatar_scale ?? 100}
+                        value={
+                          (profile.avatar_fit || 'cover') === 'cover'
+                            ? Math.max(100, profile.avatar_scale ?? 100)
+                            : (profile.avatar_scale ?? 100)
+                        }
                         onChange={(e) => updateProfile({ avatar_scale: Number(e.target.value) })}
                         className="w-full accent-cyan-400 cursor-pointer"
                       />
                       <div className="flex items-center justify-between gap-1 mt-1.5 text-[10px]">
-                        <button
-                          type="button"
-                          onClick={() => updateProfile({ avatar_scale: 85 })}
-                          className="px-2 py-0.5 rounded bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-400"
-                        >
-                          Zoom Out (85%)
-                        </button>
+                        {(profile.avatar_fit || 'cover') === 'contain' && (
+                          <button
+                            type="button"
+                            onClick={() => updateProfile({ avatar_scale: 85 })}
+                            className="px-2 py-0.5 rounded bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-400"
+                          >
+                            85%
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => updateProfile({ avatar_scale: 100 })}
                           className="px-2 py-0.5 rounded bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-400"
                         >
-                          Original (100%)
+                          100% Fit
                         </button>
                         <button
                           type="button"
                           onClick={() => updateProfile({ avatar_scale: 115 })}
                           className="px-2 py-0.5 rounded bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-400"
                         >
-                          Zoom In (115%)
+                          115%
                         </button>
                       </div>
                     </div>
@@ -1120,9 +1208,9 @@ CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO auth
                       type="button"
                       onClick={() =>
                         updateProfile({
-                          avatar_fit: 'contain',
+                          avatar_fit: 'cover',
                           avatar_position_x: 50,
-                          avatar_position_y: 50,
+                          avatar_position_y: 15,
                           avatar_scale: 100,
                           avatar_bg: 'blur',
                         })

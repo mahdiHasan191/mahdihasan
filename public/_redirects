@@ -1,2 +1,3 @@
-# Cloudflare Pages SPA fallback rule
-/*    /index.html   200
+# Cloudflare Pages: keep Admin SPA route working while allowing genuine 404.html for unknown URLs
+/admin       /admin/index.html       200
+/admin/*     /admin/index.html       200

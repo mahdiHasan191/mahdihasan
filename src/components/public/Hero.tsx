@@ -16,7 +16,6 @@ import {
   Download,
   UserCheck,
   ExternalLink,
-  Sparkles,
   Camera,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -65,7 +64,7 @@ const AnimatedKpiText: React.FC<{ value: string }> = ({ value }) => {
 export const Hero: React.FC = () => {
   const { profile, settings } = useData();
   const { scrollToSection, navigateTo } = useNavigation();
-  const { t, formatNumber, language } = useLanguage();
+  const { t, language } = useLanguage();
   const { isAdmin } = useAuth();
 
   const isBn = language === 'bn';
@@ -76,6 +75,14 @@ export const Hero: React.FC = () => {
     profile.avatar_url.trim().length > 0
   );
 
+  const avatarFit = profile.avatar_fit || 'cover';
+  const avatarBg = profile.avatar_bg || 'blur';
+  const avatarPosX = profile.avatar_position_x ?? 50;
+  const avatarPosY = profile.avatar_position_y ?? 15;
+  const rawAvatarScale = profile.avatar_scale ?? 100;
+  const effectiveAvatarScale =
+    avatarFit === 'cover' ? Math.max(100, rawAvatarScale) / 100 : rawAvatarScale / 100;
+
   return (
     <section id="home" className="relative pt-24 pb-16 md:pt-28 md:pb-20 overflow-hidden">
       {/* Background radial glow accents */}
@@ -84,12 +91,12 @@ export const Hero: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         {/* =========================================================================
-            HERO EXECUTIVE PROFILE PHOTO SHOWCASE (16:9 CINEMATIC 2560x1440 ASPECT RATIO)
+            HERO EXECUTIVE PROFILE PHOTO SHOWCASE (EXACT 16:9 ASPECT RATIO)
             ========================================================================= */}
         <div className="relative rounded-3xl overflow-hidden border border-slate-800/90 bg-slate-900 shadow-2xl shadow-black/80">
-          {/* 16:9 Panoramic Profile Photo Container (2560x1440 Optimized) */}
-          <div className="relative w-full aspect-[16/9] min-h-[260px] sm:min-h-[500px] md:min-h-[580px] lg:min-h-[640px] xl:min-h-[720px] overflow-hidden bg-gradient-to-r from-slate-950 via-slate-900 to-cyan-950 flex items-center justify-center">
-            {/* Quick Edit Shortcut (Bottom-Right to keep Left side clean for Workflow Overlay) */}
+          {/* Exact 16:9 Panoramic Profile Photo Container (No min-height override, zero top gap) */}
+          <div className="relative w-full aspect-[16/9] overflow-hidden bg-gradient-to-r from-slate-950 via-slate-900 to-cyan-950 flex items-center justify-center">
+            {/* Quick Edit Shortcut */}
             <button
               onClick={() => navigateTo(isAdmin ? 'admin_dashboard' : 'admin_login', 'profile')}
               className="btn-lighting-pos absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-30 inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-slate-950/85 hover:bg-slate-900 border border-cyan-500/40 hover:border-cyan-400 text-slate-200 hover:text-cyan-300 rounded-xl backdrop-blur-md transition-all shadow-lg text-[10px] sm:text-[11px] font-medium"
@@ -100,7 +107,7 @@ export const Hero: React.FC = () => {
               <span className="sm:hidden">Edit Photo</span>
             </button>
 
-            {/* Serpentine AI Automation Motion Workflow (Left Side on Tablet/Desktop) */}
+            {/* Serpentine AI Automation Motion Workflow */}
             <div className="hidden sm:block">
               <AIAutomationMotionOverlay />
             </div>
@@ -114,8 +121,7 @@ export const Hero: React.FC = () => {
                   className="block w-full h-full cursor-pointer relative group overflow-hidden"
                   title="Open Profile Photo Link"
                 >
-                  {/* Ambient Backdrop for Full View (No crop) mode */}
-                  {(profile.avatar_fit || 'contain') === 'contain' && (profile.avatar_bg || 'blur') === 'blur' && (
+                  {avatarFit === 'contain' && avatarBg === 'blur' && (
                     <div className="absolute inset-0 overflow-hidden pointer-events-none">
                       <img
                         src={profile.avatar_url}
@@ -127,18 +133,19 @@ export const Hero: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Foreground Image with Custom Fit, Position, and Scale */}
                   <img
                     src={profile.avatar_url}
-                    alt={profile.name}
+                    alt={`${profile.name} — AI Automation & Sales Operations Specialist portrait`}
+                    decoding="async"
                     style={{
-                      objectFit: profile.avatar_fit || 'contain',
-                      objectPosition: `${profile.avatar_position_x ?? 50}% ${profile.avatar_position_y ?? 50}%`,
-                      transform: `scale(${(profile.avatar_scale ?? 100) / 100})`,
+                      objectFit: avatarFit,
+                      objectPosition: `${avatarPosX}% ${avatarPosY}%`,
+                      transformOrigin: `${avatarPosX}% ${avatarPosY}%`,
+                      transform: `scale(${effectiveAvatarScale})`,
                     }}
-                    className="relative z-10 w-full h-full group-hover:scale-[1.02] transition-transform duration-500"
+                    className="relative z-10 w-full h-full block transition-transform duration-500"
                   />
-                  <div className="absolute inset-0 z-20 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent pointer-events-none" />
+                  <div className="absolute inset-0 z-20 bg-gradient-to-t from-slate-950/90 via-slate-950/10 to-transparent pointer-events-none" />
                   <div className="absolute top-4 right-4 z-30 bg-slate-950/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-700/80 text-[11px] font-mono text-cyan-300 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                     <span>Profile Link</span>
                     <ExternalLink className="w-3.5 h-3.5" />
@@ -146,8 +153,7 @@ export const Hero: React.FC = () => {
                 </a>
               ) : (
                 <div className="relative w-full h-full overflow-hidden">
-                  {/* Ambient Backdrop for Full View (No crop) mode */}
-                  {(profile.avatar_fit || 'contain') === 'contain' && (profile.avatar_bg || 'blur') === 'blur' && (
+                  {avatarFit === 'contain' && avatarBg === 'blur' && (
                     <div className="absolute inset-0 overflow-hidden pointer-events-none">
                       <img
                         src={profile.avatar_url}
@@ -159,22 +165,22 @@ export const Hero: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Foreground Image with Custom Fit, Position, and Scale */}
                   <img
                     src={profile.avatar_url}
-                    alt={profile.name}
+                    alt={`${profile.name} — AI Automation & Sales Operations Specialist portrait`}
+                    decoding="async"
                     style={{
-                      objectFit: profile.avatar_fit || 'contain',
-                      objectPosition: `${profile.avatar_position_x ?? 50}% ${profile.avatar_position_y ?? 50}%`,
-                      transform: `scale(${(profile.avatar_scale ?? 100) / 100})`,
+                      objectFit: avatarFit,
+                      objectPosition: `${avatarPosX}% ${avatarPosY}%`,
+                      transformOrigin: `${avatarPosX}% ${avatarPosY}%`,
+                      transform: `scale(${effectiveAvatarScale})`,
                     }}
-                    className="relative z-10 w-full h-full transition-transform duration-300"
+                    className="relative z-10 w-full h-full block transition-transform duration-300"
                   />
-                  <div className="absolute inset-0 z-20 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent pointer-events-none" />
+                  <div className="absolute inset-0 z-20 bg-gradient-to-t from-slate-950/90 via-slate-950/10 to-transparent pointer-events-none" />
                 </div>
               )
             ) : (
-              /* High-tech Executive Monogram & Portrait Placeholder aligned right on sm+ so left workflow never overlaps */
               <div className="w-full h-full relative flex items-center justify-center sm:justify-end p-6 sm:p-12 overflow-hidden">
                 <div className="absolute inset-0 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:24px_24px] opacity-25" />
                 <div className="absolute -right-20 -bottom-20 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none" />
@@ -186,15 +192,15 @@ export const Hero: React.FC = () => {
                       MH
                     </span>
                   </div>
-                  <h2 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight pb-0.5 animate-owner-name-entrance">
+                  <p className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight pb-0.5 animate-owner-name-entrance">
                     {profile.name}
-                  </h2>
+                  </p>
                   <p className="text-xs sm:text-base text-cyan-300 font-medium tracking-wide leading-tight">
                     {profile.title}
                   </p>
                   <div className="hidden md:flex flex-col items-end font-mono text-xs text-slate-400 space-y-1 pt-2">
-                    <span className="text-cyan-400 font-semibold">n8n · MCP · Webhooks · Apify</span>
-                    <span>Distributor Operations · Target ~100%</span>
+                    <span className="text-cyan-400 font-semibold">n8n · MCP · Webhooks · AI Agents</span>
+                    <span>FMCG Operations · Business Automation</span>
                     <span className="text-[11px] text-slate-500">Dhaka, Bangladesh</span>
                   </div>
                 </div>
@@ -202,12 +208,12 @@ export const Hero: React.FC = () => {
             )}
           </div>
 
-          {/* Mobile View: Transparent Serpentine Motion Workflow placed cleanly below photo inside card */}
+          {/* Mobile View: Transparent Serpentine Motion Workflow placed cleanly below photo */}
           <div className="block sm:hidden p-3 bg-transparent border-t border-slate-800/70">
             <AIAutomationMotionOverlay />
           </div>
 
-          {/* Profile Identity Bar (Clean Name WITHOUT BBA+MBA) */}
+          {/* Clean Profile Identity Bar (Restored original layout without extra URL pill) */}
           <div className="relative px-6 sm:px-10 py-5 bg-slate-950/95 border-t border-slate-800/80">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-5">
               <div className="space-y-1 text-center sm:text-left">
@@ -226,7 +232,7 @@ export const Hero: React.FC = () => {
                   {profile.title}
                 </p>
                 <p className="text-xs text-slate-400">
-                  Dhaka, Bangladesh · 6+ Years FMCG Sales Operations · AI Automation
+                  {profile.location || 'Dhaka, Bangladesh'} · 6+ Years FMCG Sales Operations · AI &amp; n8n Automation
                 </p>
               </div>
 
@@ -237,7 +243,7 @@ export const Hero: React.FC = () => {
                   className="btn-lighting inline-flex items-center gap-2 px-5 py-2.5 text-xs font-semibold text-slate-950 bg-gradient-to-r from-cyan-400 via-cyan-300 to-cyan-400 hover:from-cyan-300 hover:to-cyan-200 rounded-xl transition-all hover:scale-105"
                 >
                   <Mail className="w-4 h-4" />
-                  <span>{isBn ? 'Gmail-এ বার্তা পাঠান' : 'Send Message'}</span>
+                  <span>{isBn ? 'কনসালটেশন বুক করুন' : 'Send Message'}</span>
                 </button>
 
                 <button
@@ -253,13 +259,16 @@ export const Hero: React.FC = () => {
         </div>
 
         {/* =========================================================================
-            HERO NARRATIVE HEADLINE & DETAILS
+            HERO VALUE PROPOSITION & POSITIONING (WHO, WHO HELPED, PROBLEMS, SERVICES, CONTACT)
             ========================================================================= */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center pt-4">
           <div className="lg:col-span-8 space-y-5 text-left">
             <div>
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-[1.15] pb-1 animate-section-heading">
-                {t('hero.headline')}
+                {t(
+                  'hero.headline',
+                  'AI Automation & Sales Operations Specialist for FMCG and Small Businesses.'
+                )}
               </h1>
               <div className="relative w-28 sm:w-40 h-[3px] rounded-full bg-slate-800/90 overflow-hidden mt-2">
                 <div className="animate-heading-beam w-14 h-full bg-gradient-to-r from-transparent via-cyan-400 to-emerald-400" />
@@ -267,24 +276,46 @@ export const Hero: React.FC = () => {
             </div>
 
             <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-3xl">
-              {t('hero.description')}
+              {t(
+                'hero.description',
+                'I help FMCG teams and small businesses automate lead generation, sales reporting, customer follow-up, and daily business workflows using AI, n8n, and modern automation tools.'
+              )}
             </p>
 
+            {/* Concise Trust & Service Focus Strip */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-mono text-slate-400">
+              <span className="text-cyan-300 font-semibold">Core Focus:</span>
+              <span>n8n Workflows</span>
+              <span>·</span>
+              <span>AI Agents &amp; MCP</span>
+              <span>·</span>
+              <span>FMCG Sales Reporting</span>
+              <span>·</span>
+              <span>WhatsApp &amp; Lead Follow-up</span>
+            </div>
+
             {/* Action Buttons */}
-            <div className="flex flex-wrap items-center gap-4 pt-2">
+            <div className="flex flex-wrap items-center gap-3.5 pt-2">
               <button
-                onClick={() => scrollToSection('portfolio')}
+                onClick={() => scrollToSection('contact')}
                 className="btn-lighting inline-flex items-center gap-2 px-6 py-3.5 text-sm font-semibold text-slate-950 bg-gradient-to-r from-cyan-400 via-cyan-300 to-cyan-400 hover:from-cyan-300 hover:to-cyan-200 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
               >
-                <span>{t('hero.btn_projects')}</span>
+                <span>{isBn ? 'ফ্রি কনসালটেশন বুক করুন' : 'Book a Consultation'}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
 
               <button
-                onClick={() => scrollToSection('services')}
+                onClick={() => navigateTo('services')}
                 className="btn-lighting inline-flex items-center gap-2 px-6 py-3.5 text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 border border-cyan-500/35 hover:border-cyan-400/70 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap"
               >
-                <span>{t('nav.services')}</span>
+                <span>{t('nav.services', 'Explore Services')}</span>
+              </button>
+
+              <button
+                onClick={() => navigateTo('case_studies')}
+                className="btn-lighting inline-flex items-center gap-2 px-5 py-3.5 text-sm font-medium text-cyan-300 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/40 rounded-xl transition-colors whitespace-nowrap"
+              >
+                <span>{isBn ? 'কেস স্টাডি দেখুন' : 'View Case Studies'}</span>
               </button>
 
               {profile.resume_url && (
@@ -295,7 +326,7 @@ export const Hero: React.FC = () => {
                   className="btn-lighting inline-flex items-center gap-2 px-4 py-3.5 text-sm font-medium text-slate-200 hover:text-white bg-slate-900/70 hover:bg-slate-800 border border-cyan-500/30 rounded-xl transition-colors"
                 >
                   <Download className="w-4 h-4 text-cyan-400" />
-                  <span>{t('hero.btn_resume')}</span>
+                  <span>{t('hero.btn_resume', 'Download CV')}</span>
                 </a>
               )}
             </div>
@@ -312,7 +343,6 @@ export const Hero: React.FC = () => {
             </span>
 
             <div className="relative flex flex-wrap items-center gap-3">
-              {/* Workflow Signal Wire behind social nodes */}
               <div className="pointer-events-none absolute top-1/2 left-3 right-3 -translate-y-1/2 h-[2px] bg-slate-800/90 overflow-hidden z-0">
                 <div className="animate-workflow-packet w-10 h-full bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
               </div>
@@ -411,10 +441,9 @@ export const Hero: React.FC = () => {
           </div>
         </div>
 
-        {/* Compact 4-column Workflow Pipeline KPI Strip (Stationary Nodes + Sequential Signal Flow) */}
+        {/* Compact 4-column Workflow Pipeline KPI Strip */}
         <div className="pt-4 sm:pt-6 border-t border-slate-800/80">
           <div className="relative grid grid-cols-4 gap-1.5 sm:gap-3 lg:gap-4">
-            {/* Horizontal Workflow Bus Wire connecting Node 1 -> Node 2 -> Node 3 -> Node 4 */}
             <div className="pointer-events-none absolute top-1/2 left-4 right-4 -translate-y-1/2 h-[2px] bg-gradient-to-r from-cyan-500/20 via-emerald-500/30 to-purple-500/20 z-0 overflow-hidden">
               <div className="animate-workflow-packet w-16 sm:w-28 h-full bg-gradient-to-r from-transparent via-cyan-300 to-transparent" />
             </div>
@@ -450,7 +479,7 @@ export const Hero: React.FC = () => {
                 <AnimatedKpiText value={settings.kpi1_value || settings.stat_years_exp || '6+ Years'} />
               </div>
               <p className="relative z-10 text-[8px] sm:text-xs text-slate-400 leading-tight truncate">
-                {settings.kpi1_sub || 'FMCG Sales Experience'}
+                {settings.kpi1_sub || 'FMCG Sales Operations'}
               </p>
             </div>
 

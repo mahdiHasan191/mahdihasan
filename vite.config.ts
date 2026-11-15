@@ -1,15 +1,38 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import {defineConfig} from 'vite';
+import { defineConfig } from 'vite';
 
 export default defineConfig(() => {
   return {
-    base: './',
+    base: '/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
         '@': path.resolve('.'),
+      },
+    },
+    build: {
+      chunkSizeWarningLimit: 500,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (id.includes('/react/') || id.includes('/react-dom/') || id.includes('/scheduler/')) {
+                return 'vendor-react';
+              }
+              if (id.includes('/@supabase/')) {
+                return 'vendor-supabase';
+              }
+              if (id.includes('/lucide-react/')) {
+                return 'vendor-icons';
+              }
+              if (id.includes('/motion/') || id.includes('/framer-motion/')) {
+                return 'vendor-motion';
+              }
+            }
+          },
+        },
       },
     },
     server: {

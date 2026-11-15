@@ -134,56 +134,46 @@
   }
 }
 
-@keyframes sparkBoltFlash {
-  0%, 56%, 100% {
-    opacity: 0;
-    stroke-dashoffset: 34;
-  }
-  7% {
-    opacity: 1;
-    stroke-dashoffset: 16;
-  }
-  14% {
-    opacity: 0.35;
-    stroke-dashoffset: 9;
-  }
-  22% {
-    opacity: 1;
-    stroke-dashoffset: 0;
-  }
-  38% {
-    opacity: 0.65;
-    stroke-dashoffset: -12;
-  }
-}
-
-@keyframes sparkFlyOut {
+@keyframes mhTelemetryPulse {
   0% {
-    opacity: 0;
-    transform: translate3d(0px, 0px, 0) scale3d(0.25, 0.25, 1);
+    opacity: 0.72;
+    transform: scale3d(0.76, 0.76, 1);
   }
-  18% {
-    opacity: 1;
-    transform: translate3d(calc(var(--sx, 12px) * 0.3), calc(var(--sy, -12px) * 0.3), 0) scale3d(1.15, 1.15, 1);
-  }
-  72% {
-    opacity: 0.85;
-    transform: translate3d(var(--sx, 12px), var(--sy, -12px), 0) scale3d(0.75, 0.75, 1);
+  70% {
+    opacity: 0.14;
+    transform: scale3d(1.16, 1.16, 1);
   }
   100% {
     opacity: 0;
-    transform: translate3d(calc(var(--sx, 12px) * 1.25), calc(var(--sy, -12px) * 1.25), 0) scale3d(0.08, 0.08, 1);
+    transform: scale3d(1.24, 1.24, 1);
   }
 }
 
-@keyframes mhElectricSurge {
+@keyframes mhScanlineSweep {
+  0% {
+    transform: translate3d(0, -18px, 0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.8;
+  }
+  80% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate3d(0, 76px, 0);
+    opacity: 0;
+  }
+}
+
+@keyframes mhCorePulse {
   0%, 100% {
-    opacity: 0.94;
+    opacity: 0.96;
     transform: scale3d(1, 1, 1);
   }
   50% {
     opacity: 1;
-    transform: scale3d(1.035, 1.035, 1);
+    transform: scale3d(1.028, 1.028, 1);
   }
 }
 
@@ -191,53 +181,45 @@
   transform-box: view-box;
   transform-origin: 178px 145px;
   will-change: transform;
-  animation: mhOrbitSpin 9s linear infinite;
+  animation: mhOrbitSpin 12s linear infinite;
 }
 
 .animate-mh-orbit-ccw {
   transform-box: view-box;
   transform-origin: 178px 145px;
   will-change: transform;
-  animation: mhOrbitSpin 13s linear reverse infinite;
+  animation: mhOrbitSpin 16s linear reverse infinite;
 }
 
-.animate-spark-bolt-1 {
-  stroke-dasharray: 24 14;
-  will-change: stroke-dashoffset, opacity;
-  animation: sparkBoltFlash 1.65s cubic-bezier(0.22, 1, 0.36, 1) infinite;
-}
-
-.animate-spark-bolt-2 {
-  stroke-dasharray: 22 14;
-  will-change: stroke-dashoffset, opacity;
-  animation: sparkBoltFlash 1.85s cubic-bezier(0.22, 1, 0.36, 1) 0.4s infinite;
-}
-
-.animate-spark-bolt-3 {
-  stroke-dasharray: 24 14;
-  will-change: stroke-dashoffset, opacity;
-  animation: sparkBoltFlash 1.75s cubic-bezier(0.22, 1, 0.36, 1) 0.85s infinite;
-}
-
-.animate-spark-bolt-4 {
-  stroke-dasharray: 22 14;
-  will-change: stroke-dashoffset, opacity;
-  animation: sparkBoltFlash 1.95s cubic-bezier(0.22, 1, 0.36, 1) 1.2s infinite;
-}
-
-.animate-spark-fly {
-  transform-box: fill-box;
-  transform-origin: center;
+.animate-mh-telemetry-pulse {
+  transform-box: view-box;
+  transform-origin: 178px 145px;
   will-change: transform, opacity;
-  animation: sparkFlyOut 1.45s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  animation: mhTelemetryPulse 2.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.animate-mh-scanline {
+  will-change: transform, opacity;
+  animation: mhScanlineSweep 3.2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
 }
 
 .animate-mh-surge {
   transform-box: fill-box;
   transform-origin: center;
   will-change: transform, opacity;
-  filter: drop-shadow(0 0 8px rgba(34, 211, 238, 0.65));
-  animation: mhElectricSurge 2.4s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px rgba(34, 211, 238, 0.55));
+  animation: mhCorePulse 3s ease-in-out infinite;
+}
+
+/* Live Portfolio Domain Animated Text & Shimmer */
+.animate-domain-shimmer {
+  background-image: linear-gradient(90deg, #67e8f9 0%, #ffffff 30%, #34d399 60%, #67e8f9 100%);
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  will-change: background-position;
+  animation: ownerGradientShimmer 4.5s ease-in-out infinite;
 }
 
 /* Workflow Pipeline Execution Animations (Stationary Nodes + Flowing Data Signal, GPU 60fps) */
@@ -464,12 +446,10 @@
   .animate-heading-beam,
   .animate-mh-orbit-cw,
   .animate-mh-orbit-ccw,
-  .animate-spark-bolt-1,
-  .animate-spark-bolt-2,
-  .animate-spark-bolt-3,
-  .animate-spark-bolt-4,
-  .animate-spark-fly,
+  .animate-mh-telemetry-pulse,
+  .animate-mh-scanline,
   .animate-mh-surge,
+  .animate-domain-shimmer,
   .animate-workflow-node,
   .animate-workflow-social,
   .animate-workflow-port,
