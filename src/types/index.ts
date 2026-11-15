@@ -15,6 +15,11 @@ export interface Profile {
   github_url: string;
   avatar_url: string;
   avatar_link?: string;
+  avatar_fit?: 'contain' | 'cover';
+  avatar_position_x?: number;
+  avatar_position_y?: number;
+  avatar_scale?: number;
+  avatar_bg?: 'blur' | 'dark' | 'gradient';
   cover_url?: string;
   cover_link?: string;
   resume_url: string;
@@ -29,6 +34,7 @@ export interface Service {
   description: string;
   icon_name: string;
   deliverables: string[];
+  link_url?: string;
   display_order: number;
   is_published: boolean;
   created_at?: string;
@@ -151,6 +157,33 @@ export interface WebsiteSettings {
   stat_awards: string;
   cta_primary_text: string;
   cta_secondary_text: string;
+
+  // Header & Navigation Customization
+  header_brand_title?: string;
+  header_brand_subtitle?: string;
+  header_nav_home?: string;
+  header_nav_about?: string;
+  header_nav_services?: string;
+  header_nav_portfolio?: string;
+  header_nav_credentials?: string;
+  header_nav_skills?: string;
+  header_nav_achievements?: string;
+  header_nav_contact?: string;
+  header_nav_cta?: string;
+
+  // Customizable Key Stats Strip (Headings, Values, Subtitles)
+  kpi1_label?: string;
+  kpi1_value?: string;
+  kpi1_sub?: string;
+  kpi2_label?: string;
+  kpi2_value?: string;
+  kpi2_sub?: string;
+  kpi3_label?: string;
+  kpi3_value?: string;
+  kpi3_sub?: string;
+  kpi4_label?: string;
+  kpi4_value?: string;
+  kpi4_sub?: string;
 }
 
 export interface Achievement {

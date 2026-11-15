@@ -1,173 +1,278 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useData } from '../../context/DataContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { Award, Eye, X, ZoomIn, CheckCircle2, ShieldCheck, ChevronRight, ExternalLink } from 'lucide-react';
+import {
+  Award,
+  X,
+  ZoomIn,
+  ShieldCheck,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  Pause,
+  Play,
+} from 'lucide-react';
 import { Achievement } from '../../types';
 
 export const AchievementGallery: React.FC = () => {
   const { achievements } = useData();
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
-  const [activeCategory, setActiveCategory] = useState<string>('all');
-  const isBn = language === 'bn';
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [itemsPerView, setItemsPerView] = useState(2);
+  const touchStartX = useRef<number | null>(null);
 
   const publishedAchievements = achievements.filter((a) => a.is_published);
+  const totalItems = publishedAchievements.length;
 
-  // Derive categories
-  const categories = ['all', ...Array.from(new Set(publishedAchievements.map((a) => a.category)))];
+  // Responsive itemsPerView - ensures there is ALWAYS movement and sliding
+  useEffect(() => {
+    const updateItemsPerView = () => {
+      const width = window.innerWidth;
+      if (width < 640) {
+        setItemsPerView(1); // 1 card on mobile
+      } else if (width < 1024) {
+        setItemsPerView(totalItems >= 2 ? 2 : 1);
+      } else {
+        // Desktop: If 4+ items show 3, if 2 or 3 items show 2 so that it ALWAYS auto-slides!
+        setItemsPerView(totalItems >= 4 ? 3 : (totalItems >= 2 ? 2 : 1));
+      }
+    };
 
-  const filteredAchievements =
-    activeCategory === 'all'
-      ? publishedAchievements
-      : publishedAchievements.filter((a) => a.category === activeCategory);
+    updateItemsPerView();
+    window.addEventListener('resize', updateItemsPerView);
+    return () => window.removeEventListener('resize', updateItemsPerView);
+  }, [totalItems]);
+
+  // Infinite display list (tripled so it loops continuously with no empty gaps)
+  const displayList =
+    totalItems > 1
+      ? [...publishedAchievements, ...publishedAchievements, ...publishedAchievements]
+      : publishedAchievements;
+
+  // Auto-slide effect (always slides every 3 seconds if totalItems > 1 and not paused)
+  useEffect(() => {
+    if (isPaused || totalItems <= 1) return;
+
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % totalItems);
+    }, 3200);
+
+    return () => clearInterval(timer);
+  }, [isPaused, totalItems]);
+
+  const handlePrev = () => {
+    setCurrentIndex((prev) => (prev <= 0 ? totalItems - 1 : prev - 1));
+  };
+
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % totalItems);
+  };
+
+  // Mobile touch swipe support
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const diff = touchStartX.current - e.changedTouches[0].clientX;
+    if (diff > 40) {
+      handleNext();
+    } else if (diff < -40) {
+      handlePrev();
+    }
+    touchStartX.current = null;
+  };
 
   return (
-    <section id="achievements" className="py-24 bg-slate-950 border-t border-slate-900 relative">
-      {/* Subtle ambient lighting */}
+    <section id="achievements" className="py-20 bg-slate-950 border-t border-slate-900 relative overflow-hidden">
+      {/* Background ambient lighting */}
       <div className="absolute top-1/2 left-1/3 w-[500px] h-[500px] bg-purple-600/5 rounded-full blur-[140px] pointer-events-none -z-10" />
       <div className="absolute bottom-10 right-10 w-[400px] h-[400px] bg-cyan-500/5 rounded-full blur-[120px] pointer-events-none -z-10" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
-          <div className="max-w-3xl">
-            <div className="text-xs font-semibold tracking-wider uppercase text-cyan-400 mb-2">
-              {t('achievements.kicker')}
+        {/* Section Header with Carousel Controls */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
+          <div>
+            <div className="text-xs font-semibold tracking-wider uppercase text-cyan-400 mb-1.5 flex items-center gap-2">
+              <span>{t('achievements.kicker')}</span>
+              <span className="inline-flex items-center gap-1 text-[10px] font-mono bg-cyan-950/80 text-cyan-300 border border-cyan-800/60 px-2 py-0.5 rounded-full animate-pulse">
+                Auto-Sliding Gallery
+              </span>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight">
               {t('achievements.headline')}
             </h2>
-            <p className="mt-4 text-base sm:text-lg text-slate-300 leading-relaxed">
+            <p className="mt-2 text-sm text-slate-300 max-w-2xl">
               {t('achievements.subtitle')}
             </p>
           </div>
 
-          {/* Category Filter Pills (if multiple categories) */}
-          {categories.length > 2 && (
-            <div className="flex flex-wrap gap-2 text-xs">
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
-                  className={`px-3 py-1.5 rounded-lg border transition-all ${
-                    activeCategory === cat
-                      ? 'bg-cyan-500/10 text-cyan-300 border-cyan-500/40'
-                      : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white hover:border-slate-700'
-                  }`}
-                >
-                  {cat === 'all' ? t('achievements.all_categories') : cat}
-                </button>
-              ))}
+          {/* Controls: Prev, Play/Pause, Next */}
+          {totalItems > 1 && (
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <button
+                onClick={() => setIsPaused(!isPaused)}
+                className="btn-glow-soft p-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-cyan-500/30 text-slate-300 hover:text-cyan-300 transition-colors"
+                title={isPaused ? 'Resume auto-slide' : 'Pause auto-slide'}
+                aria-label="Toggle auto-slide"
+              >
+                {isPaused ? <Play className="w-4 h-4 text-cyan-400" /> : <Pause className="w-4 h-4" />}
+              </button>
+              <button
+                onClick={handlePrev}
+                className="btn-glow-soft p-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-cyan-500/30 text-slate-300 hover:text-white hover:border-cyan-400/60 transition-colors"
+                aria-label="Previous slide"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={handleNext}
+                className="btn-glow-soft p-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-cyan-500/30 text-slate-300 hover:text-white hover:border-cyan-400/60 transition-colors"
+                aria-label="Next slide"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
           )}
         </div>
 
-        {/* Gallery Grid */}
-        {filteredAchievements.length === 0 ? (
-          <div className="p-12 bg-slate-900/50 border border-slate-800 rounded-2xl text-center text-slate-400 text-sm">
+        {/* Sliding Carousel Viewport */}
+        {totalItems === 0 ? (
+          <div className="p-10 bg-slate-900/50 border border-slate-800 rounded-2xl text-center text-slate-400 text-sm">
             No achievement records currently published.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredAchievements.map((item) => (
-              <div
-                key={item.id}
-                className="group bg-slate-900/60 hover:bg-slate-900/90 border border-slate-800 hover:border-cyan-500/40 rounded-2xl overflow-hidden transition-all duration-300 flex flex-col hover:shadow-xl hover:shadow-cyan-950/20"
-              >
-                {/* Image Container with Hover Overlay */}
+          <div
+            className="relative overflow-hidden py-2"
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
+            {/* Sliding Track */}
+            <div
+              className="flex transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform"
+              style={{
+                transform: `translate3d(-${currentIndex * (100 / itemsPerView)}%, 0, 0)`,
+              }}
+            >
+              {displayList.map((item, idx) => (
                 <div
-                  className="relative aspect-[16/10] overflow-hidden bg-slate-950 cursor-pointer"
-                  onClick={() => setSelectedAchievement(item)}
+                  key={`${item.id}-${idx}`}
+                  className="px-2.5 shrink-0"
+                  style={{ width: `${100 / itemsPerView}%` }}
                 >
-                  <img
-                    src={item.image_url}
-                    alt={item.title}
-                    loading="lazy"
-                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
-                  />
-                  {/* Subtle Gradient vignette */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-80 group-hover:opacity-60 transition-opacity" />
+                  {/* Compact Card: Image + Heading */}
+                  <div className="group bg-slate-900/70 hover:bg-slate-900 border border-slate-800/90 hover:border-cyan-500/50 rounded-xl overflow-hidden transition-all duration-300 flex flex-col hover:shadow-xl hover:shadow-cyan-950/30 h-full">
+                    {/* Compact Image Container */}
+                    <div
+                      className="relative aspect-[16/10] overflow-hidden bg-slate-950 cursor-pointer"
+                      onClick={() => setSelectedAchievement(item)}
+                    >
+                      <img
+                        src={item.image_url}
+                        alt={item.title}
+                        loading="lazy"
+                        className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-75 group-hover:opacity-40 transition-opacity" />
 
-                  {/* Top Category Badge */}
-                  <div className="absolute top-3 left-3">
-                    <span className="text-[11px] font-mono px-2.5 py-1 bg-slate-950/90 text-cyan-300 border border-slate-800 rounded-md backdrop-blur-sm">
-                      {item.category}
-                    </span>
-                  </div>
+                      {/* Top Badges */}
+                      <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between">
+                        <span className="text-[10px] font-mono px-2 py-0.5 bg-slate-950/90 text-cyan-300 border border-slate-800 rounded backdrop-blur-sm truncate max-w-[140px]">
+                          {item.category}
+                        </span>
+                        {item.date && (
+                          <span className="text-[10px] font-mono px-2 py-0.5 bg-slate-950/90 text-slate-300 border border-slate-800 rounded backdrop-blur-sm">
+                            {item.date}
+                          </span>
+                        )}
+                      </div>
 
-                  {/* Inspection Trigger on Hover */}
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-slate-950/40">
-                    <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-900/95 border border-cyan-500/50 rounded-lg text-xs font-semibold text-cyan-300 shadow-lg">
-                      <ZoomIn className="w-3.5 h-3.5" />
-                      <span>View Full Award</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Content Box */}
-                <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-xs text-slate-400">
-                      <span className="font-mono text-cyan-400/90">{item.date}</span>
-                      <div className="flex items-center gap-1 text-emerald-400">
-                        <ShieldCheck className="w-3.5 h-3.5" />
-                        <span className="text-[11px] font-mono">Verified Record</span>
+                      {/* Hover Overlay Button */}
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-slate-950/40">
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-900/95 border border-cyan-500/60 rounded-lg text-xs font-semibold text-cyan-300 shadow-md">
+                          <ZoomIn className="w-3.5 h-3.5" />
+                          <span>View Full Photo</span>
+                        </div>
                       </div>
                     </div>
 
-                    <h3 className="text-lg font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-2">
-                      {item.title}
-                    </h3>
-
-                    <p className="text-xs text-slate-300 leading-relaxed line-clamp-3">
-                      {item.description}
-                    </p>
-                  </div>
-
-                  {/* Card Footer Action */}
-                  <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between">
-                    <button
-                      onClick={() => setSelectedAchievement(item)}
-                      className="inline-flex items-center gap-1 text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition-colors group-hover:translate-x-0.5 transform duration-150"
-                    >
-                      <span>Inspect Details</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </button>
-                    {item.link_url ? (
-                      <a
-                        href={item.link_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        title="Open direct achievement link"
-                        className="inline-flex items-center gap-1 text-[11px] font-mono text-cyan-400 hover:text-cyan-300 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/60 transition-colors"
+                    {/* Compact Card Body: Heading and Hyperlink Option */}
+                    <div className="p-3.5 flex-1 flex flex-col justify-between space-y-2.5">
+                      <h3
+                        onClick={() => setSelectedAchievement(item)}
+                        className="text-sm sm:text-base font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-2 cursor-pointer leading-snug"
+                        title={item.title}
                       >
-                        <span>Link</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    ) : (
-                      <span className="text-[10px] font-mono text-slate-500">Verified Milestone</span>
-                    )}
+                        {item.title}
+                      </h3>
+
+                      <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between">
+                        <button
+                          onClick={() => setSelectedAchievement(item)}
+                          className="btn-lighting inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-cyan-500/15 hover:bg-cyan-400 text-[11px] font-semibold text-cyan-300 hover:text-slate-950 border border-cyan-500/30 transition-all"
+                        >
+                          <span>Inspect</span>
+                          <ZoomIn className="w-3 h-3" />
+                        </button>
+
+                        {item.link_url && (
+                          <a
+                            href={item.link_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            title="Open direct achievement link"
+                            className="btn-lighting inline-flex items-center gap-1 text-[10px] font-mono text-cyan-300 hover:text-white bg-cyan-950/70 hover:bg-cyan-900 px-2.5 py-0.5 rounded border border-cyan-500/40 transition-colors"
+                          >
+                            <span>Link</span>
+                            <ExternalLink className="w-2.5 h-2.5" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
+              ))}
+            </div>
+
+            {/* Carousel Dot Indicators */}
+            {totalItems > 1 && (
+              <div className="flex items-center justify-center gap-1.5 mt-6">
+                {publishedAchievements.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentIndex(idx)}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${
+                      currentIndex % totalItems === idx
+                        ? 'w-6 bg-cyan-400'
+                        : 'w-1.5 bg-slate-800 hover:bg-slate-700'
+                    }`}
+                    aria-label={`Go to slide ${idx + 1}`}
+                  />
+                ))}
               </div>
-            ))}
+            )}
           </div>
         )}
       </div>
 
-      {/* Lightbox / Modal for Inspection */}
+      {/* Lightbox / Modal for Full Inspection */}
       {selectedAchievement && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fade-in"
           onClick={() => setSelectedAchievement(null)}
         >
           <div
-            className="relative bg-slate-900 border border-slate-800 rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl shadow-black/80 animate-scale-up"
+            className="relative bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl shadow-black/80 animate-scale-up"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-950/80">
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-800 bg-slate-950/80">
               <div className="flex items-center gap-2">
                 <Award className="w-4 h-4 text-cyan-400" />
                 <span className="text-xs font-mono uppercase tracking-wider text-cyan-300">
@@ -193,31 +298,48 @@ export const AchievementGallery: React.FC = () => {
             </div>
 
             {/* Modal Details */}
-            <div className="p-6 space-y-3 bg-slate-900">
+            <div className="p-5 space-y-3 bg-slate-900">
               <div className="flex items-center justify-between gap-2">
-                <h3 className="text-xl font-bold text-white tracking-tight">
+                <h3 className="text-lg font-bold text-white tracking-tight">
                   {selectedAchievement.title}
                 </h3>
-                <span className="text-xs font-mono text-cyan-400 bg-cyan-950/60 px-2.5 py-1 rounded-md border border-cyan-800/60 shrink-0">
-                  {selectedAchievement.date}
-                </span>
+                {selectedAchievement.date && (
+                  <span className="text-xs font-mono text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded-md border border-cyan-800/60 shrink-0">
+                    {selectedAchievement.date}
+                  </span>
+                )}
               </div>
 
-              <p className="text-sm text-slate-300 leading-relaxed">
-                {selectedAchievement.description}
-              </p>
+              {selectedAchievement.description && (
+                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                  {selectedAchievement.description}
+                </p>
+              )}
 
               <div className="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
-                <div className="flex items-center gap-1.5 text-emerald-400">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Verified Professional Milestone · FMCG Sales Operations</span>
+                <div className="flex items-center gap-1.5 text-emerald-400 font-mono text-[11px]">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Verified Professional Milestone</span>
                 </div>
-                <button
-                  onClick={() => setSelectedAchievement(null)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-950 bg-cyan-400 hover:bg-cyan-300 rounded-lg transition-colors"
-                >
-                  Close Inspection
-                </button>
+                <div className="flex items-center gap-2">
+                  {selectedAchievement.link_url && (
+                    <a
+                      href={selectedAchievement.link_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-lighting px-3 py-1.5 text-xs font-semibold text-cyan-300 bg-cyan-950 hover:bg-cyan-900 rounded-lg border border-cyan-500/40 inline-flex items-center gap-1"
+                    >
+                      <span>Visit Link</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                  <button
+                    onClick={() => setSelectedAchievement(null)}
+                    className="btn-lighting px-3.5 py-1.5 text-xs font-semibold text-slate-950 bg-cyan-400 hover:bg-cyan-300 rounded-lg transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
           </div>

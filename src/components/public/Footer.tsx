@@ -95,7 +95,7 @@ export const Footer: React.FC = () => {
               href={profile.github_url || 'https://github.com/mahdiHasan191'}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2.5 bg-slate-900 border border-slate-700 hover:border-white rounded-xl text-slate-300 hover:text-white shadow-[0_0_12px_rgba(255,255,255,0.15)] hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] transition-all hover:scale-110"
+              className="btn-lighting p-2.5 bg-slate-900 border border-slate-500/60 hover:border-white rounded-xl text-slate-200 hover:text-white transition-all hover:scale-110"
               aria-label="GitHub"
               title="GitHub Profile"
             >
@@ -108,7 +108,7 @@ export const Footer: React.FC = () => {
 
             <button
               onClick={() => scrollToSection('home')}
-              className="p-2 text-slate-400 hover:text-white bg-slate-900 border border-slate-800 rounded-lg transition-colors ml-1"
+              className="btn-glow-soft p-2 text-slate-300 hover:text-cyan-300 bg-slate-900 border border-cyan-500/30 rounded-lg transition-colors ml-1"
               title="Back to Top"
               aria-label="Scroll to top"
             >

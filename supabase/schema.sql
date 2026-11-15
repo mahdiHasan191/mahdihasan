@@ -17,9 +17,6 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   linkedin_url TEXT,
   github_url TEXT,
   avatar_url TEXT,
-  avatar_link TEXT,
-  cover_url TEXT,
-  cover_link TEXT,
   resume_url TEXT,
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );

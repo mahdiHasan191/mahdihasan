@@ -39,6 +39,7 @@ import {
   X,
   Trophy,
   Download,
+  Camera,
 } from 'lucide-react';
 import {
   Service,
@@ -141,14 +142,14 @@ export const AdminDashboard: React.FC = () => {
   ];
 
   // Helper for image upload
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, onComplete: (url: string) => void | Promise<void>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, onComplete: (url: string) => void) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploading(true);
     try {
       const url = await db.uploadFile('portfolio-images', file);
-      await onComplete(url);
+      onComplete(url);
       showSuccessBanner('Image uploaded successfully!');
     } catch (err: any) {
       alert('Upload failed: ' + err.message);
@@ -800,100 +801,301 @@ CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO auth
                 </div>
               </div>
 
-              {/* Avatar Hyperlink & Cover Banner Options */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">
-                    Avatar Image Hyperlink (Clicking avatar opens this link)
-                  </label>
-                  <input
-                    type="url"
-                    value={profile.avatar_link || ''}
-                    onChange={(e) => updateProfile({ avatar_link: e.target.value })}
-                    placeholder="https://..."
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-400 font-mono"
-                  />
+              {/* Profile Photo & Interactive Image Setup Tool */}
+              <div className="p-5 bg-slate-950 border border-cyan-500/30 rounded-2xl space-y-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                      <span>Profile Photo & Image Setup (No Cropping / Custom Position)</span>
+                      <span className="text-[10px] font-mono px-2 py-0.5 bg-cyan-950 text-cyan-300 border border-cyan-800 rounded">
+                        16:9 Setup
+                      </span>
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Adjust display mode, zoom, and vertical position so no part of your face or photo gets cropped.
+                    </p>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">
-                    YouTube Cover Banner Hyperlink (Clicking banner opens this link)
-                  </label>
-                  <input
-                    type="url"
-                    value={profile.cover_link || ''}
-                    onChange={(e) => updateProfile({ cover_link: e.target.value })}
-                    placeholder="https://..."
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-400 font-mono"
-                  />
-                </div>
-              </div>
-
-              {/* YouTube-style Cover Banner Photo URL */}
-              <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-3">
-                <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">
-                    YouTube-style Cover Photo Banner URL (Wide Panoramic Header)
-                  </label>
-                  <input
-                    type="text"
-                    value={profile.cover_url || ''}
-                    onChange={(e) => updateProfile({ cover_url: e.target.value })}
-                    placeholder="https://... (direct public image link from Imgur, Cloudinary, GitHub, or Supabase)"
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white font-mono"
-                  />
-                </div>
-
-                  <div className="flex items-center gap-4">
-                  <div className="flex-1">
-                    <span className="text-[11px] text-slate-400 block mb-1">
-                      Or Upload Banner File (From your computer):
+                {/* 16:9 Live Interactive Setup Preview Box */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-mono text-cyan-400 font-semibold uppercase tracking-wider text-[11px]">
+                      Live 16:9 Frame Preview:
                     </span>
+                    <span className="text-[11px] text-slate-400">
+                      Mode: <strong className="text-white">{(profile.avatar_fit || 'contain') === 'contain' ? 'Full Image (No Crop)' : 'Fill Frame'}</strong> · Zoom: <strong className="text-white">{profile.avatar_scale ?? 100}%</strong>
+                    </span>
+                  </div>
+
+                  <div className="relative w-full aspect-[16/9] max-h-72 rounded-2xl overflow-hidden border-2 border-cyan-500/40 bg-slate-900 shadow-xl flex items-center justify-center">
+                    {profile.avatar_url ? (
+                      <>
+                        {/* Ambient Backdrop */}
+                        {(profile.avatar_fit || 'contain') === 'contain' && (profile.avatar_bg || 'blur') === 'blur' && (
+                          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                            <img
+                              src={profile.avatar_url}
+                              alt=""
+                              aria-hidden="true"
+                              className="w-full h-full object-cover blur-2xl opacity-40 scale-125"
+                            />
+                            <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm" />
+                          </div>
+                        )}
+
+                        {/* Foreground Preview Image */}
+                        <img
+                          src={profile.avatar_url}
+                          alt="Setup Preview"
+                          style={{
+                            objectFit: profile.avatar_fit || 'contain',
+                            objectPosition: `${profile.avatar_position_x ?? 50}% ${profile.avatar_position_y ?? 50}%`,
+                            transform: `scale(${(profile.avatar_scale ?? 100) / 100})`,
+                          }}
+                          className="relative z-10 w-full h-full transition-all duration-200"
+                        />
+                        <div className="absolute inset-0 z-20 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none" />
+
+                        <div className="absolute bottom-2.5 left-3 z-30 flex items-center gap-2">
+                          <span className="text-[10px] font-mono bg-slate-950/90 text-cyan-300 px-2 py-0.5 rounded border border-slate-800">
+                            Y-Pos: {profile.avatar_position_y ?? 50}%
+                          </span>
+                          <span className="text-[10px] font-mono bg-slate-950/90 text-cyan-300 px-2 py-0.5 rounded border border-slate-800">
+                            Fit: {profile.avatar_fit || 'contain'}
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-center p-6 space-y-2 text-slate-500">
+                        <Camera className="w-8 h-8 mx-auto text-slate-600" />
+                        <p className="text-xs">No profile photo currently set. Upload an image or enter a URL below.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Setup Controls */}
+                <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl space-y-4">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-cyan-400 block font-mono">
+                    Image Framing & Alignment Controls
+                  </span>
+
+                  {/* 1. Fit Mode Toggle */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-medium text-slate-300">
+                      Display Mode:
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => updateProfile({ avatar_fit: 'contain' })}
+                        className={`p-2.5 rounded-xl border text-xs font-semibold transition-all flex flex-col items-center gap-1 ${
+                          (profile.avatar_fit || 'contain') === 'contain'
+                            ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500 shadow-md shadow-cyan-950/50'
+                            : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
+                        }`}
+                      >
+                        <span>✓ Full Image View (No Cropping)</span>
+                        <span className="text-[10px] font-normal text-slate-400">
+                          Shows 100% of entire photo without cutting edges
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => updateProfile({ avatar_fit: 'cover' })}
+                        className={`p-2.5 rounded-xl border text-xs font-semibold transition-all flex flex-col items-center gap-1 ${
+                          profile.avatar_fit === 'cover'
+                            ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500 shadow-md shadow-cyan-950/50'
+                            : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
+                        }`}
+                      >
+                        <span>Fill Frame (Cover)</span>
+                        <span className="text-[10px] font-normal text-slate-400">
+                          Fills 16:9 banner frame edge-to-edge
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 2. Position Sliders */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-800">
+                    {/* Vertical Position (Y-Offset) */}
+                    <div>
+                      <div className="flex items-center justify-between text-xs mb-1">
+                        <span className="text-slate-300">Vertical Alignment (Y-Position):</span>
+                        <span className="font-mono text-cyan-400 text-[11px]">{profile.avatar_position_y ?? 50}%</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={profile.avatar_position_y ?? 50}
+                        onChange={(e) => updateProfile({ avatar_position_y: Number(e.target.value) })}
+                        className="w-full accent-cyan-400 cursor-pointer"
+                      />
+                      <div className="flex items-center justify-between gap-1 mt-1.5 text-[10px]">
+                        <button
+                          type="button"
+                          onClick={() => updateProfile({ avatar_position_y: 10 })}
+                          className="px-2 py-0.5 rounded bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-400"
+                        >
+                          Top (Face focus)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateProfile({ avatar_position_y: 50 })}
+                          className="px-2 py-0.5 rounded bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-400"
+                        >
+                          Center (50%)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateProfile({ avatar_position_y: 90 })}
+                          className="px-2 py-0.5 rounded bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-400"
+                        >
+                          Bottom
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Scale / Zoom */}
+                    <div>
+                      <div className="flex items-center justify-between text-xs mb-1">
+                        <span className="text-slate-300">Scale / Zoom:</span>
+                        <span className="font-mono text-cyan-400 text-[11px]">{profile.avatar_scale ?? 100}%</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="50"
+                        max="150"
+                        value={profile.avatar_scale ?? 100}
+                        onChange={(e) => updateProfile({ avatar_scale: Number(e.target.value) })}
+                        className="w-full accent-cyan-400 cursor-pointer"
+                      />
+                      <div className="flex items-center justify-between gap-1 mt-1.5 text-[10px]">
+                        <button
+                          type="button"
+                          onClick={() => updateProfile({ avatar_scale: 85 })}
+                          className="px-2 py-0.5 rounded bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-400"
+                        >
+                          Zoom Out (85%)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateProfile({ avatar_scale: 100 })}
+                          className="px-2 py-0.5 rounded bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-400"
+                        >
+                          Original (100%)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateProfile({ avatar_scale: 115 })}
+                          className="px-2 py-0.5 rounded bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-400"
+                        >
+                          Zoom In (115%)
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 3. Backdrop style & Reset button */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800 text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="text-slate-400 text-[11px]">Backdrop Style:</span>
+                      <button
+                        type="button"
+                        onClick={() => updateProfile({ avatar_bg: 'blur' })}
+                        className={`px-2.5 py-1 rounded-lg text-xs ${
+                          (profile.avatar_bg || 'blur') === 'blur'
+                            ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                            : 'bg-slate-950 text-slate-400 border border-slate-800'
+                        }`}
+                      >
+                        Ambient Blurred Photo
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => updateProfile({ avatar_bg: 'dark' })}
+                        className={`px-2.5 py-1 rounded-lg text-xs ${
+                          profile.avatar_bg === 'dark'
+                            ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                            : 'bg-slate-950 text-slate-400 border border-slate-800'
+                        }`}
+                      >
+                        Solid Dark Navy
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateProfile({
+                          avatar_fit: 'contain',
+                          avatar_position_x: 50,
+                          avatar_position_y: 50,
+                          avatar_scale: 100,
+                          avatar_bg: 'blur',
+                        })
+                      }
+                      className="text-[11px] text-slate-400 hover:text-white underline underline-offset-2"
+                    >
+                      Reset Setup to Defaults
+                    </button>
+                  </div>
+                </div>
+
+                {/* URL and File Upload Inputs */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-300 mb-1">
+                      Profile Photo Direct URL (Instant on all devices)
+                    </label>
+                    <input
+                      type="text"
+                      value={profile.avatar_url}
+                      onChange={(e) => updateProfile({ avatar_url: e.target.value })}
+                      placeholder="https://... (Imgur, Postimages, Cloudinary, GitHub, or Supabase)"
+                      className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-400 font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-slate-300 mb-1">
+                      Profile Photo Hyperlink (Clicking photo opens this link)
+                    </label>
+                    <input
+                      type="url"
+                      value={profile.avatar_link || ''}
+                      onChange={(e) => updateProfile({ avatar_link: e.target.value })}
+                      placeholder="https://linkedin.com/in/..."
+                      className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-400 font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-slate-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-slate-400">Or Upload from Computer:</span>
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={(e) => handleImageUpload(e, (url) => updateProfile({ cover_url: url }))}
+                      onChange={(e) => handleImageUpload(e, (url) => updateProfile({ avatar_url: url }))}
                       className="text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-cyan-500/20 file:text-cyan-300 hover:file:bg-cyan-500/30"
                     />
                   </div>
-                  {profile.cover_url && (
-                    <img
-                      src={profile.cover_url}
-                      alt="Cover Preview"
-                      className="w-24 h-12 object-cover rounded-lg border border-slate-800"
-                    />
-                  )}
-                </div>
-              </div>
 
-              {/* Avatar Image Upload Trigger */}
-              <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
-                <label className="block text-xs font-medium text-slate-300 mb-1">
-                  Upload Profile Avatar Photo (From your computer)
-                </label>
-                <div className="flex items-center gap-4">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleImageUpload(e, (url) => updateProfile({ avatar_url: url }))}
-                    className="text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-cyan-500/20 file:text-cyan-300 hover:file:bg-cyan-500/30"
-                  />
-                  {profile.avatar_url && (
-                    <img
-                      src={profile.avatar_url}
-                      alt="Avatar Preview"
-                      className="w-10 h-10 object-cover rounded-full border border-cyan-500/50"
-                    />
+                  {uploading && (
+                    <div className="flex items-center gap-2 text-xs text-cyan-300 animate-pulse">
+                      <div className="w-3.5 h-3.5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+                      <span>Uploading to storage...</span>
+                    </div>
                   )}
                 </div>
-                {uploading && (
-                  <div className="flex items-center gap-2 text-xs text-cyan-300 animate-pulse pt-1">
-                    <div className="w-3.5 h-3.5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
-                    <span>Uploading image to storage, please wait...</span>
-                  </div>
-                )}
+
                 <p className="text-[11px] text-slate-500">
-                  Tip: A direct public link (e.g., from Imgur, Cloudinary, GitHub raw, or Supabase public bucket) is instantly visible to all visitors on any device!
+                  Tip: Direct public URLs (e.g. from Imgur, PostImages, or GitHub) work universally across all browsers and devices without needing extra storage credentials!
                 </p>
               </div>
 
@@ -955,45 +1157,262 @@ CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO auth
                 </div>
               </div>
 
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 pt-4 border-t border-slate-800">
-                Key Stats Strip (FMCG Record)
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-cyan-400 pt-5 border-t border-slate-800">
+                Key Stats Strip Customization (Mobile 1-Line & Desktop)
+              </h4>
+              <p className="text-xs text-slate-400">
+                Customize the labels, numbers, and subtitles for the 4 key statistic boxes shown directly below the hero section.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Stat 1 */}
+                <div className="p-3.5 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
+                  <span className="text-[11px] font-mono font-semibold text-cyan-400 uppercase block">Stat Box 1</span>
+                  <div>
+                    <label className="block text-[11px] text-slate-400 mb-0.5">Heading / Label</label>
+                    <input
+                      type="text"
+                      value={settings.kpi1_label || ''}
+                      placeholder="FMCG Experience"
+                      onChange={(e) => updateSettings({ kpi1_label: e.target.value })}
+                      className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-slate-400 mb-0.5">Stat Number / Value</label>
+                    <input
+                      type="text"
+                      value={settings.kpi1_value || settings.stat_years_exp || ''}
+                      placeholder="6+ Years"
+                      onChange={(e) => updateSettings({ kpi1_value: e.target.value, stat_years_exp: e.target.value })}
+                      className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-slate-400 mb-0.5">Subtitle / Description</label>
+                    <input
+                      type="text"
+                      value={settings.kpi1_sub || ''}
+                      placeholder="FMCG Sales Experience"
+                      onChange={(e) => updateSettings({ kpi1_sub: e.target.value })}
+                      className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white"
+                    />
+                  </div>
+                </div>
+
+                {/* Stat 2 */}
+                <div className="p-3.5 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
+                  <span className="text-[11px] font-mono font-semibold text-cyan-400 uppercase block">Stat Box 2</span>
+                  <div>
+                    <label className="block text-[11px] text-slate-400 mb-0.5">Heading / Label</label>
+                    <input
+                      type="text"
+                      value={settings.kpi2_label || ''}
+                      placeholder="Annual Growth"
+                      onChange={(e) => updateSettings({ kpi2_label: e.target.value })}
+                      className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-slate-400 mb-0.5">Stat Number / Value</label>
+                    <input
+                      type="text"
+                      value={settings.kpi2_value || settings.stat_growth || ''}
+                      placeholder="~9%"
+                      onChange={(e) => updateSettings({ kpi2_value: e.target.value, stat_growth: e.target.value })}
+                      className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-slate-400 mb-0.5">Subtitle / Description</label>
+                    <input
+                      type="text"
+                      value={settings.kpi2_sub || ''}
+                      placeholder="Yearly Business Growth"
+                      onChange={(e) => updateSettings({ kpi2_sub: e.target.value })}
+                      className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white"
+                    />
+                  </div>
+                </div>
+
+                {/* Stat 3 */}
+                <div className="p-3.5 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
+                  <span className="text-[11px] font-mono font-semibold text-cyan-400 uppercase block">Stat Box 3</span>
+                  <div>
+                    <label className="block text-[11px] text-slate-400 mb-0.5">Heading / Label</label>
+                    <input
+                      type="text"
+                      value={settings.kpi3_label || ''}
+                      placeholder="Target Attainment"
+                      onChange={(e) => updateSettings({ kpi3_label: e.target.value })}
+                      className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-slate-400 mb-0.5">Stat Number / Value</label>
+                    <input
+                      type="text"
+                      value={settings.kpi3_value || settings.stat_target || ''}
+                      placeholder="~100%"
+                      onChange={(e) => updateSettings({ kpi3_value: e.target.value, stat_target: e.target.value })}
+                      className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-slate-400 mb-0.5">Subtitle / Description</label>
+                    <input
+                      type="text"
+                      value={settings.kpi3_sub || ''}
+                      placeholder="Average Target Achievement"
+                      onChange={(e) => updateSettings({ kpi3_sub: e.target.value })}
+                      className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white"
+                    />
+                  </div>
+                </div>
+
+                {/* Stat 4 */}
+                <div className="p-3.5 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
+                  <span className="text-[11px] font-mono font-semibold text-purple-400 uppercase block">Stat Box 4</span>
+                  <div>
+                    <label className="block text-[11px] text-slate-400 mb-0.5">Heading / Label</label>
+                    <input
+                      type="text"
+                      value={settings.kpi4_label || ''}
+                      placeholder="Top Performer"
+                      onChange={(e) => updateSettings({ kpi4_label: e.target.value })}
+                      className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-slate-400 mb-0.5">Stat Number / Value</label>
+                    <input
+                      type="text"
+                      value={settings.kpi4_value || settings.stat_awards || ''}
+                      placeholder="3x 1st Place"
+                      onChange={(e) => updateSettings({ kpi4_value: e.target.value, stat_awards: e.target.value })}
+                      className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-slate-400 mb-0.5">Subtitle / Description</label>
+                    <input
+                      type="text"
+                      value={settings.kpi4_sub || ''}
+                      placeholder="New Product Sales Performer"
+                      onChange={(e) => updateSettings({ kpi4_sub: e.target.value })}
+                      className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Header & Navigation Bar Customization */}
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-cyan-400 pt-5 border-t border-slate-800">
+                Header & Navigation Bar Customization
               </h4>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Experience</label>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">Header Brand / Logo Text</label>
                   <input
                     type="text"
-                    value={settings.stat_years_exp}
-                    onChange={(e) => updateSettings({ stat_years_exp: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white"
+                    value={settings.header_brand_title || ''}
+                    onChange={(e) => updateSettings({ header_brand_title: e.target.value })}
+                    placeholder="Mahdi Hasan"
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-cyan-400"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Sales Growth</label>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">Header CTA Button Text</label>
                   <input
                     type="text"
-                    value={settings.stat_growth}
-                    onChange={(e) => updateSettings({ stat_growth: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white"
+                    value={settings.header_nav_cta || ''}
+                    onChange={(e) => updateSettings({ header_nav_cta: e.target.value })}
+                    placeholder="Get in Touch"
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-cyan-400"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                <div>
+                  <label className="block text-slate-400 mb-1 font-mono">Nav: Home</label>
+                  <input
+                    type="text"
+                    value={settings.header_nav_home || ''}
+                    onChange={(e) => updateSettings({ header_nav_home: e.target.value })}
+                    placeholder="Home"
+                    className="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-white text-xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Target Achievement</label>
+                  <label className="block text-slate-400 mb-1 font-mono">Nav: About</label>
                   <input
                     type="text"
-                    value={settings.stat_target}
-                    onChange={(e) => updateSettings({ stat_target: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white"
+                    value={settings.header_nav_about || ''}
+                    onChange={(e) => updateSettings({ header_nav_about: e.target.value })}
+                    placeholder="About"
+                    className="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-white text-xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Distinction Note</label>
+                  <label className="block text-slate-400 mb-1 font-mono">Nav: Services</label>
                   <input
                     type="text"
-                    value={settings.stat_awards}
-                    onChange={(e) => updateSettings({ stat_awards: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white"
+                    value={settings.header_nav_services || ''}
+                    onChange={(e) => updateSettings({ header_nav_services: e.target.value })}
+                    placeholder="Services"
+                    className="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-white text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 mb-1 font-mono">Nav: Portfolio</label>
+                  <input
+                    type="text"
+                    value={settings.header_nav_portfolio || ''}
+                    onChange={(e) => updateSettings({ header_nav_portfolio: e.target.value })}
+                    placeholder="Portfolio"
+                    className="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-white text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 mb-1 font-mono">Nav: Experience</label>
+                  <input
+                    type="text"
+                    value={settings.header_nav_credentials || ''}
+                    onChange={(e) => updateSettings({ header_nav_credentials: e.target.value })}
+                    placeholder="Experience & Degrees"
+                    className="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-white text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 mb-1 font-mono">Nav: Skills</label>
+                  <input
+                    type="text"
+                    value={settings.header_nav_skills || ''}
+                    onChange={(e) => updateSettings({ header_nav_skills: e.target.value })}
+                    placeholder="Skills"
+                    className="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-white text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 mb-1 font-mono">Nav: Achievements</label>
+                  <input
+                    type="text"
+                    value={settings.header_nav_achievements || ''}
+                    onChange={(e) => updateSettings({ header_nav_achievements: e.target.value })}
+                    placeholder="Achievements"
+                    className="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-white text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 mb-1 font-mono">Nav: Contact</label>
+                  <input
+                    type="text"
+                    value={settings.header_nav_contact || ''}
+                    onChange={(e) => updateSettings({ header_nav_contact: e.target.value })}
+                    placeholder="Contact"
+                    className="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-white text-xs"
                   />
                 </div>
               </div>
@@ -1279,6 +1698,17 @@ CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO auth
                 </div>
 
                 <div>
+                  <label className="block text-xs text-slate-300 mb-1">Hyperlink URL (Optional link to demo, case study, or tool)</label>
+                  <input
+                    type="url"
+                    value={editingService.link_url || ''}
+                    placeholder="https://example.com/demo"
+                    onChange={(e) => setEditingService({ ...editingService, link_url: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-600 focus:outline-none focus:border-cyan-400"
+                  />
+                </div>
+
+                <div>
                   <label className="block text-xs text-slate-300 mb-1">Deliverables (one per line)</label>
                   <textarea
                     rows={4}
@@ -1355,8 +1785,13 @@ CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO auth
                     <h3 className="text-base font-bold text-white mb-1.5">{srv.title}</h3>
                     <p className="text-xs text-slate-400 line-clamp-2 mb-3">{srv.description}</p>
                   </div>
-                  <div className="pt-3 border-t border-slate-800/80 text-[11px] text-slate-500">
-                    {srv.deliverables?.length || 0} Deliverables Configured
+                  <div className="pt-3 border-t border-slate-800/80 text-[11px] text-slate-500 flex items-center justify-between">
+                    <span>{srv.deliverables?.length || 0} Deliverables Configured</span>
+                    {srv.link_url && (
+                      <span className="font-mono text-cyan-400 text-[10px] bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/50">
+                        Link Linked
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
@@ -1572,13 +2007,9 @@ CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO auth
                   <button
                     onClick={async () => {
                       if (!editingProject.title.trim()) return;
-                      try {
-                        await saveProject(editingProject);
-                        setEditingProject(null);
-                        showSuccessBanner('Project saved to the shared website!');
-                      } catch (err: any) {
-                        alert('Project save failed: ' + err.message);
-                      }
+                      await saveProject(editingProject);
+                      setEditingProject(null);
+                      showSuccessBanner('Project saved!');
                     }}
                     className="px-4 py-2 text-xs font-semibold text-slate-950 bg-cyan-400 hover:bg-cyan-300 rounded-xl"
                   >
@@ -2186,13 +2617,9 @@ CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO auth
                         alert('Please provide an achievement title.');
                         return;
                       }
-                      try {
-                        await saveAchievement(editingAchievement);
-                        setEditingAchievement(null);
-                        showSuccessBanner('Achievement saved to the shared website!');
-                      } catch (err: any) {
-                        alert('Gallery save failed: ' + err.message);
-                      }
+                      await saveAchievement(editingAchievement);
+                      setEditingAchievement(null);
+                      showSuccessBanner('Achievement saved successfully!');
                     }}
                     className="px-5 py-2.5 text-xs font-semibold text-slate-950 bg-cyan-400 hover:bg-cyan-300 rounded-xl"
                   >

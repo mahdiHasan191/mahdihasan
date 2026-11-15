@@ -197,7 +197,7 @@ ${data.message}`;
                   href={constructGmailUrl(lastSubmitted)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-semibold text-slate-950 bg-gradient-to-r from-cyan-400 to-cyan-300 hover:from-cyan-300 hover:to-cyan-200 rounded-xl shadow-lg shadow-cyan-500/20 transition-all hover:scale-105"
+                  className="btn-lighting inline-flex items-center gap-2 px-5 py-2.5 text-xs font-semibold text-slate-950 bg-gradient-to-r from-cyan-400 to-cyan-300 hover:from-cyan-300 hover:to-cyan-200 rounded-xl transition-all hover:scale-105"
                 >
                   <Mail className="w-4 h-4" />
                   <span>
@@ -208,7 +208,7 @@ ${data.message}`;
 
                 <a
                   href={constructMailtoUrl(lastSubmitted)}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-slate-300 hover:text-white bg-slate-950 border border-slate-800 rounded-xl transition-colors"
+                  className="btn-lighting inline-flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-slate-200 hover:text-white bg-slate-950 border border-cyan-500/35 rounded-xl transition-colors"
                 >
                   <span>
                     {language === 'bn' ? 'ডিফল্ট ইমেইল অ্যাপ দিয়ে পাঠান' : 'Default Mail Client'}
@@ -217,7 +217,7 @@ ${data.message}`;
 
                 <button
                   onClick={() => setSuccess(false)}
-                  className="px-4 py-2.5 text-xs font-medium text-slate-400 hover:text-cyan-300 transition-colors"
+                  className="btn-glow-soft px-4 py-2.5 text-xs font-medium text-slate-300 hover:text-cyan-300 border border-slate-800 rounded-xl transition-colors"
                 >
                   {language === 'bn' ? 'আরেকটি বার্তা লিখুন' : 'Send Another Message'}
                 </button>
@@ -353,7 +353,7 @@ ${data.message}`;
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 text-sm font-semibold text-slate-950 bg-gradient-to-r from-cyan-400 via-cyan-300 to-cyan-400 hover:from-cyan-300 hover:to-cyan-200 disabled:opacity-50 rounded-xl shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/30 transition-all hover:scale-[1.01] active:scale-[0.99]"
+                  className="btn-lighting w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 text-sm font-semibold text-slate-950 bg-gradient-to-r from-cyan-400 via-cyan-300 to-cyan-400 hover:from-cyan-300 hover:to-cyan-200 disabled:opacity-50 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.99]"
                 >
                   {submitting ? (
                     <>

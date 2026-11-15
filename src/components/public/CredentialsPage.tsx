@@ -53,7 +53,7 @@ export const CredentialsPage: React.FC = () => {
           <div>
             <button
               onClick={() => navigateTo('home')}
-              className="inline-flex items-center gap-2 text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition-colors mb-3 group"
+              className="btn-glow-soft inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/70 border border-slate-800 text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition-colors mb-3 group"
             >
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
               <span>{isBn ? 'হোম পেজে ফিরে যান' : 'Back to Home Portfolio'}</span>
@@ -79,7 +79,7 @@ export const CredentialsPage: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2 my-8 p-1.5 bg-slate-900/80 border border-slate-800 rounded-2xl w-fit">
           <button
             onClick={() => handleTabChange('experience')}
-            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+            className={`btn-lighting inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
               activeTab === 'experience'
                 ? 'bg-gradient-to-r from-cyan-400 to-cyan-300 text-slate-950 shadow-md shadow-cyan-500/20'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
@@ -92,7 +92,7 @@ export const CredentialsPage: React.FC = () => {
 
           <button
             onClick={() => handleTabChange('education')}
-            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+            className={`btn-lighting inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
               activeTab === 'education'
                 ? 'bg-gradient-to-r from-cyan-400 to-cyan-300 text-slate-950 shadow-md shadow-cyan-500/20'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
@@ -105,7 +105,7 @@ export const CredentialsPage: React.FC = () => {
 
           <button
             onClick={() => handleTabChange('achievements')}
-            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+            className={`btn-lighting inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
               activeTab === 'achievements'
                 ? 'bg-gradient-to-r from-cyan-400 to-cyan-300 text-slate-950 shadow-md shadow-cyan-500/20'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
@@ -118,7 +118,7 @@ export const CredentialsPage: React.FC = () => {
 
           <button
             onClick={() => handleTabChange('certifications')}
-            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+            className={`btn-lighting inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
               activeTab === 'certifications'
                 ? 'bg-gradient-to-r from-cyan-400 to-cyan-300 text-slate-950 shadow-md shadow-cyan-500/20'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800/60'

@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useNavigation } from '../../context/NavigationContext';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { useData } from '../../context/DataContext';
 import { LanguageSwitcher } from '../common/LanguageSwitcher';
-import { Shield, Menu, X, ArrowUpRight, GraduationCap } from 'lucide-react';
+import { Shield, Menu, X, ArrowUpRight } from 'lucide-react';
 
 export const Header: React.FC = () => {
   const { scrollToSection, navigateTo, route } = useNavigation();
   const { isAdmin } = useAuth();
   const { t, language } = useLanguage();
+  const { settings, profile } = useData();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -41,7 +43,7 @@ export const Header: React.FC = () => {
             }}
             className="text-xl font-bold tracking-tight text-white hover:text-cyan-400 transition-colors whitespace-nowrap shrink-0 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 rounded"
           >
-            Mahdi Hasan
+            {settings?.header_brand_title || profile?.name || 'Mahdi Hasan'}
           </button>
 
           {/* Zone 2: Navigation Links */}
@@ -53,7 +55,7 @@ export const Header: React.FC = () => {
               }}
               className="hover:text-cyan-400 transition-colors whitespace-nowrap shrink-0 hover:underline underline-offset-8"
             >
-              {t('nav.home', 'Home')}
+              {settings?.header_nav_home || t('nav.home', 'Home')}
             </button>
             <button
               onClick={() => {
@@ -62,7 +64,7 @@ export const Header: React.FC = () => {
               }}
               className="hover:text-cyan-400 transition-colors whitespace-nowrap shrink-0 hover:underline underline-offset-8"
             >
-              {t('nav.about', 'About')}
+              {settings?.header_nav_about || t('nav.about', 'About')}
             </button>
             <button
               onClick={() => {
@@ -71,7 +73,7 @@ export const Header: React.FC = () => {
               }}
               className="hover:text-cyan-400 transition-colors whitespace-nowrap shrink-0 hover:underline underline-offset-8"
             >
-              {t('nav.services', 'Services')}
+              {settings?.header_nav_services || t('nav.services', 'Services')}
             </button>
             <button
               onClick={() => {
@@ -80,7 +82,7 @@ export const Header: React.FC = () => {
               }}
               className="hover:text-cyan-400 transition-colors whitespace-nowrap shrink-0 hover:underline underline-offset-8"
             >
-              {t('nav.portfolio', 'Portfolio')}
+              {settings?.header_nav_portfolio || t('nav.portfolio', 'Portfolio')}
             </button>
 
             {/* Dedicated Experience & Degrees Tab */}
@@ -90,10 +92,7 @@ export const Header: React.FC = () => {
                 route === 'credentials' ? 'text-cyan-400 font-semibold' : ''
               }`}
             >
-              <span>{isBn ? 'Experience & Degrees' : 'Experience & Degrees'}</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.2 bg-cyan-950 border border-cyan-800 text-cyan-300 rounded">
-                BBA+MBA
-              </span>
+              <span>{settings?.header_nav_credentials || 'Experience & Degrees'}</span>
             </button>
 
             <button
@@ -103,7 +102,7 @@ export const Header: React.FC = () => {
               }}
               className="hover:text-cyan-400 transition-colors whitespace-nowrap shrink-0 hover:underline underline-offset-8"
             >
-              {t('nav.skills', 'Skills')}
+              {settings?.header_nav_skills || t('nav.skills', 'Skills')}
             </button>
             <button
               onClick={() => {
@@ -112,7 +111,7 @@ export const Header: React.FC = () => {
               }}
               className="hover:text-cyan-400 transition-colors whitespace-nowrap shrink-0 hover:underline underline-offset-8"
             >
-              {isBn ? 'Achievements' : 'Achievements'}
+              {settings?.header_nav_achievements || 'Achievements'}
             </button>
             <button
               onClick={() => {
@@ -121,7 +120,7 @@ export const Header: React.FC = () => {
               }}
               className="hover:text-cyan-400 transition-colors whitespace-nowrap shrink-0 hover:underline underline-offset-8"
             >
-              {t('nav.contact', 'Contact')}
+              {settings?.header_nav_contact || t('nav.contact', 'Contact')}
             </button>
           </nav>
 
@@ -134,16 +133,16 @@ export const Header: React.FC = () => {
                 if (route !== 'home') navigateTo('home');
                 scrollToSection('contact');
               }}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-slate-950 bg-gradient-to-r from-cyan-400 to-cyan-300 hover:from-cyan-300 hover:to-cyan-200 rounded-lg shadow-sm shadow-cyan-500/20 transition-all hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap shrink-0"
+              className="btn-lighting inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-slate-950 bg-gradient-to-r from-cyan-400 to-cyan-300 hover:from-cyan-300 hover:to-cyan-200 rounded-lg transition-all hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap shrink-0"
             >
-              <span>{t('nav.get_in_touch', 'Get in Touch')}</span>
+              <span>{settings?.header_nav_cta || t('nav.get_in_touch', 'Get in Touch')}</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
             </button>
 
             <button
               onClick={() => navigateTo(isAdmin ? 'admin_dashboard' : 'admin_login')}
               title={isAdmin ? 'Go to Admin Dashboard' : 'Admin Login'}
-              className="p-2 text-slate-400 hover:text-cyan-400 hover:bg-slate-900 border border-slate-800 rounded-lg transition-colors whitespace-nowrap shrink-0"
+              className="btn-glow-soft p-2 text-slate-300 hover:text-cyan-400 hover:bg-slate-900 border border-cyan-500/25 rounded-lg transition-colors whitespace-nowrap shrink-0"
               aria-label="Admin Portal"
             >
               <Shield className="w-4 h-4" />
@@ -155,14 +154,14 @@ export const Header: React.FC = () => {
             <LanguageSwitcher />
             <button
               onClick={() => navigateTo(isAdmin ? 'admin_dashboard' : 'admin_login')}
-              className="p-2 text-slate-400 hover:text-cyan-400 rounded-lg border border-slate-800"
+              className="btn-glow-soft p-2 text-slate-300 hover:text-cyan-400 rounded-lg border border-cyan-500/25"
               title="Admin Portal"
             >
               <Shield className="w-4 h-4" />
             </button>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-slate-300 hover:text-white rounded-lg border border-slate-800"
+              className="btn-glow-soft p-2 text-slate-200 hover:text-white rounded-lg border border-cyan-500/25"
               aria-label="Toggle navigation menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -206,7 +205,7 @@ export const Header: React.FC = () => {
             }}
             className="block w-full text-left py-2 text-sm text-slate-300 hover:text-cyan-400"
           >
-            {t('nav.services', 'Services')}
+            {settings?.header_nav_services || t('nav.services', 'Services')}
           </button>
           <button
             onClick={() => {
@@ -216,7 +215,7 @@ export const Header: React.FC = () => {
             }}
             className="block w-full text-left py-2 text-sm text-slate-300 hover:text-cyan-400"
           >
-            {t('nav.portfolio', 'Portfolio')}
+            {settings?.header_nav_portfolio || t('nav.portfolio', 'Portfolio')}
           </button>
           <button
             onClick={() => {
@@ -225,7 +224,7 @@ export const Header: React.FC = () => {
             }}
             className="block w-full text-left py-2 text-sm text-cyan-400 font-semibold"
           >
-            {isBn ? 'Experience & Degrees (BBA+MBA)' : 'Experience & Degrees (BBA+MBA)'}
+            {settings?.header_nav_credentials || 'Experience & Degrees'}
           </button>
           <button
             onClick={() => {
@@ -235,7 +234,7 @@ export const Header: React.FC = () => {
             }}
             className="block w-full text-left py-2 text-sm text-slate-300 hover:text-cyan-400"
           >
-            {t('nav.skills', 'Skills')}
+            {settings?.header_nav_skills || t('nav.skills', 'Skills')}
           </button>
           <button
             onClick={() => {
@@ -245,7 +244,7 @@ export const Header: React.FC = () => {
             }}
             className="block w-full text-left py-2 text-sm text-slate-300 hover:text-cyan-400"
           >
-            {isBn ? 'Achievements' : 'Achievements'}
+            {settings?.header_nav_achievements || 'Achievements'}
           </button>
           <button
             onClick={() => {
@@ -255,7 +254,7 @@ export const Header: React.FC = () => {
             }}
             className="block w-full text-left py-2 text-sm text-slate-300 hover:text-cyan-400"
           >
-            {t('nav.contact', 'Contact')}
+            {settings?.header_nav_contact || t('nav.contact', 'Contact')}
           </button>
           <div className="pt-2 border-t border-slate-800">
             <button

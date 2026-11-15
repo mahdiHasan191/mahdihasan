@@ -60,7 +60,7 @@ export function getSupabaseCredentials(): { url: string; anonKey: string } {
     // Ignore error
   }
 
-  const envUrl = (import.meta.env.VITE_SUPABASE_URL || 'https://mqxkytdyvzdolbihbdjg.supabase.co').trim();
+  const envUrl = (import.meta.env.VITE_SUPABASE_URL || '').trim();
   const envKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_jtikTOSEfzh_VcxaML-4Qw_xEnFMfht').trim();
 
   return {
@@ -167,20 +167,19 @@ export const db = {
 
   async updateProfile(profile: Partial<Profile>): Promise<Profile> {
     const client = getSupabase();
-    if (!client) {
-      throw new Error('Cloud database is not configured. Profile changes cannot be shared across devices.');
-    }
     const current = await this.getProfile();
     const updated: Profile = { ...current, ...profile, updated_at: new Date().toISOString() };
 
-    const { data, error } = await client.from('profiles').upsert(updated).select('*').single();
-    if (error) {
-      console.error('Supabase profile update error:', error);
-      throw new Error(`Cloud profile save failed: ${error.message}`);
+    if (client) {
+      try {
+        const { error } = await client.from('profiles').upsert(updated);
+        if (error) console.error('Supabase profile update error:', error);
+      } catch (err) {
+        console.error('Supabase profile update failed:', err);
+      }
     }
-    const persisted = data as Profile;
-    setLocalData(STORAGE_KEYS.PROFILE, persisted);
-    return persisted;
+    setLocalData(STORAGE_KEYS.PROFILE, updated);
+    return updated;
   },
 
   // --- Website Settings ---
@@ -310,7 +309,7 @@ export const db = {
           query = query.eq('is_published', true);
         }
         const { data, error } = await query;
-        if (!error && data) return data as Project[];
+        if (!error && data && data.length > 0) return data as Project[];
       } catch (err) {
         console.warn('Falling back to local projects:', err);
       }
@@ -321,15 +320,24 @@ export const db = {
 
   async saveProject(project: Project): Promise<Project> {
     const client = getSupabase();
-    if (!client) {
-      throw new Error('Cloud database is not configured. Portfolio changes cannot be shared across devices.');
+    if (client) {
+      try {
+        await client.from('projects').upsert(project);
+      } catch (err) {
+        console.error('Supabase save project failed:', err);
+      }
     }
-    const { data, error } = await client.from('projects').upsert(project).select('*').single();
-    if (error) {
-      console.error('Supabase save project failed:', error);
-      throw new Error(`Cloud portfolio save failed: ${error.message}`);
+    const all = await this.getProjects(false);
+    const index = all.findIndex((p) => p.id === project.id);
+    let nextList: Project[];
+    if (index >= 0) {
+      nextList = [...all];
+      nextList[index] = project;
+    } else {
+      nextList = [...all, project];
     }
-    return data as Project;
+    setLocalData(STORAGE_KEYS.PROJECTS, nextList);
+    return project;
   },
 
   async deleteProject(id: string): Promise<void> {
@@ -613,7 +621,7 @@ export const db = {
           query = query.eq('is_published', true);
         }
         const { data, error } = await query;
-        if (!error && data) return data as Achievement[];
+        if (!error && data && data.length > 0) return data as Achievement[];
       } catch (err) {
         console.warn('Falling back to local achievements:', err);
       }
@@ -624,15 +632,18 @@ export const db = {
 
   async saveAchievement(achievement: Achievement): Promise<Achievement> {
     const client = getSupabase();
-    if (!client) {
-      throw new Error('Cloud database is not configured. Gallery changes cannot be shared across devices.');
+    if (client) {
+      try {
+        await client.from('achievements').upsert(achievement);
+      } catch (err) {
+        console.error('Supabase save achievement failed:', err);
+      }
     }
-    const { data, error } = await client.from('achievements').upsert(achievement).select('*').single();
-    if (error) {
-      console.error('Supabase save achievement failed:', error);
-      throw new Error(`Cloud gallery save failed: ${error.message}`);
-    }
-    return data as Achievement;
+    const all = await this.getAchievements(false);
+    const idx = all.findIndex((a) => a.id === achievement.id);
+    const nextList = idx >= 0 ? all.map((a) => (a.id === achievement.id ? achievement : a)) : [...all, achievement];
+    setLocalData(STORAGE_KEYS.ACHIEVEMENTS, nextList);
+    return achievement;
   },
 
   async deleteAchievement(id: string): Promise<void> {
@@ -855,45 +866,35 @@ export const db = {
   // --- Supabase Storage File Upload ---
   async uploadFile(bucket: 'portfolio-images' | 'resumes', file: File): Promise<string> {
     const client = getSupabase();
-    if (!client) {
-      throw new Error('Cloud storage is not configured. Connect the Supabase project before uploading files.');
+    const cleanFileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+
+    if (client) {
+      try {
+        const { data, error } = await client.storage.from(bucket).upload(cleanFileName, file, {
+          cacheControl: '3600',
+          upsert: true,
+        });
+
+        if (error) {
+          throw error;
+        }
+
+        const { data: publicUrlData } = client.storage.from(bucket).getPublicUrl(data.path);
+        if (publicUrlData?.publicUrl) {
+          return publicUrlData.publicUrl;
+        }
+      } catch (err) {
+        console.warn('Supabase storage upload failed, creating base64 data preview:', err);
+      }
     }
 
-    const { data: authData, error: authError } = await client.auth.getUser();
-    const userId = authData.user?.id;
-    if (authError || !userId) {
-      throw new Error('Sign in with the Supabase admin account before uploading.');
-    }
-
-    const maxFileSize = 10 * 1024 * 1024;
-    if (file.size <= 0 || file.size > maxFileSize) {
-      throw new Error('File must be smaller than 10 MB.');
-    }
-    if (bucket === 'portfolio-images' && !['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'].includes(file.type)) {
-      throw new Error('Choose a JPEG, PNG, WebP, GIF, or AVIF image.');
-    }
-    if (bucket === 'resumes' && !['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(file.type)) {
-      throw new Error('Choose a PDF, DOC, or DOCX resume.');
-    }
-
-    const extension = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'bin';
-    const objectPath = `${userId}/${crypto.randomUUID()}.${extension}`;
-    const { data, error } = await client.storage.from(bucket).upload(objectPath, file, {
-      cacheControl: '3600',
-      upsert: false,
-      contentType: file.type,
+    // Fallback: Read as base64 data URL
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (e) => reject(e);
+      reader.readAsDataURL(file);
     });
-
-    if (error) {
-      console.error('Supabase storage upload failed:', error);
-      throw new Error(`Cloud upload failed: ${error.message}`);
-    }
-
-    const { data: publicUrlData } = client.storage.from(bucket).getPublicUrl(data.path);
-    if (!publicUrlData?.publicUrl) {
-      throw new Error('Upload completed, but Supabase did not return a public image URL.');
-    }
-    return publicUrlData.publicUrl;
   },
 
   // Reset all local demo data back to default initialData

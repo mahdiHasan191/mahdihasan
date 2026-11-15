@@ -21,7 +21,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
         <Globe className="w-3.5 h-3.5 text-cyan-400" />
         <button
           onClick={() => setLanguage('en')}
-          className={`px-1.5 py-0.5 rounded transition-colors ${
+          className={`btn-glow-soft px-1.5 py-0.5 rounded transition-colors ${
             language === 'en'
               ? 'text-cyan-300 font-bold bg-cyan-950/80 border border-cyan-800/60'
               : 'text-slate-400 hover:text-white'
@@ -33,7 +33,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
         <span className="text-slate-600">/</span>
         <button
           onClick={() => setLanguage('bn')}
-          className={`px-1.5 py-0.5 rounded transition-colors ${
+          className={`btn-glow-soft px-1.5 py-0.5 rounded transition-colors ${
             language === 'bn'
               ? 'text-cyan-300 font-bold bg-cyan-950/80 border border-cyan-800/60'
               : 'text-slate-400 hover:text-white'
@@ -56,7 +56,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
       <button
         type="button"
         onClick={() => setLanguage('en')}
-        className={`flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${
+        className={`btn-glow-soft flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${
           language === 'en'
             ? 'bg-gradient-to-r from-cyan-500/20 to-cyan-400/20 text-cyan-300 border border-cyan-500/40 shadow-xs'
             : 'text-slate-400 hover:text-slate-200 border border-transparent'
@@ -69,7 +69,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
       <button
         type="button"
         onClick={() => setLanguage('bn')}
-        className={`flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${
+        className={`btn-glow-soft flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${
           language === 'bn'
             ? 'bg-gradient-to-r from-cyan-500/20 to-cyan-400/20 text-cyan-300 border border-cyan-500/40 shadow-xs'
             : 'text-slate-400 hover:text-slate-200 border border-transparent'
