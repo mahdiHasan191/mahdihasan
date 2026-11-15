@@ -23,6 +23,7 @@ import {
   Pause,
   Play,
 } from 'lucide-react';
+import { WorkflowIconNode } from '../common/WorkflowIconNode';
 
 // Icon mapper for dynamic service cards
 const iconMap: Record<string, React.ElementType> = {
@@ -145,9 +146,12 @@ export const ServicesSection: React.FC = () => {
                 Auto-Slide Active
               </span>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight pb-0.5 animate-section-heading">
               {t('services.headline')}
             </h2>
+            <div className="relative w-24 sm:w-32 h-[3px] rounded-full bg-slate-800/90 overflow-hidden mt-2">
+              <div className="animate-heading-beam w-12 h-full bg-gradient-to-r from-transparent via-cyan-400 to-emerald-400" />
+            </div>
             <p className="mt-3 text-base text-slate-300 max-w-2xl">
               {t('services.subtitle')}
             </p>
@@ -233,11 +237,9 @@ export const ServicesSection: React.FC = () => {
                   >
                     <div className="w-full group relative flex flex-col justify-between p-6 bg-slate-900/60 hover:bg-slate-900/90 border border-slate-800/90 hover:border-cyan-500/40 rounded-2xl transition-all duration-300 hover:shadow-xl hover:shadow-cyan-950/20">
                       <div>
-                        {/* Category tag & Icon */}
+                        {/* Category tag & Animated Workflow Icon */}
                         <div className="flex items-center justify-between gap-4 mb-4">
-                          <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl text-cyan-400 group-hover:text-cyan-300 group-hover:border-cyan-500/40 transition-colors">
-                            <IconComponent className="w-6 h-6" />
-                          </div>
+                          <WorkflowIconNode icon={IconComponent} delayIndex={idx} tone="cyan" />
                           <span className="text-xs font-mono text-slate-400">
                             {service.category}
                           </span>

@@ -174,6 +174,28 @@ CREATE TABLE IF NOT EXISTS public.site_analytics (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 12b. Create Detailed Visitor Logs Table
+CREATE TABLE IF NOT EXISTS public.visitor_logs (
+  id TEXT PRIMARY KEY,
+  visitor_id TEXT NOT NULL,
+  visited_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  ip_address TEXT,
+  country TEXT,
+  country_code TEXT,
+  city TEXT,
+  region TEXT,
+  isp TEXT,
+  device_type TEXT NOT NULL,
+  os TEXT NOT NULL,
+  browser TEXT NOT NULL,
+  screen_resolution TEXT,
+  language TEXT,
+  referrer TEXT,
+  landing_page TEXT,
+  visit_type TEXT NOT NULL DEFAULT 'New Visitor',
+  visit_number INT NOT NULL DEFAULT 1
+);
+
 -- 13. Create Contact Inquiries Table
 CREATE TABLE IF NOT EXISTS public.contact_inquiries (
   id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
@@ -204,6 +226,7 @@ ALTER TABLE public.skills ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.testimonials ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.achievements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.site_analytics ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.visitor_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contact_inquiries ENABLE ROW LEVEL SECURITY;
 
 -- Public can SELECT published content
@@ -220,6 +243,7 @@ CREATE POLICY "Public testimonials read" ON public.testimonials FOR SELECT USING
 CREATE POLICY "Public achievements read" ON public.achievements FOR SELECT USING (is_published = true);
 CREATE POLICY "Public site_analytics read" ON public.site_analytics FOR SELECT USING (true);
 CREATE POLICY "Public site_analytics upsert" ON public.site_analytics FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public insert visitor_logs" ON public.visitor_logs FOR INSERT WITH CHECK (true);
 
 -- Public can INSERT contact inquiries
 CREATE POLICY "Public submit inquiry" ON public.contact_inquiries FOR INSERT WITH CHECK (true);
@@ -236,6 +260,7 @@ CREATE POLICY "Admin full certifications" ON public.certifications FOR ALL TO au
 CREATE POLICY "Admin full skills" ON public.skills FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Admin full testimonials" ON public.testimonials FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Admin full achievements" ON public.achievements FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Admin full visitor_logs" ON public.visitor_logs FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- ==============================================================================

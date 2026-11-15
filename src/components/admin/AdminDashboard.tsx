@@ -40,6 +40,11 @@ import {
   Trophy,
   Download,
   Camera,
+  Users,
+  Globe,
+  Monitor,
+  Smartphone,
+  RefreshCw,
 } from 'lucide-react';
 import {
   Service,
@@ -89,12 +94,20 @@ export const AdminDashboard: React.FC = () => {
     inquiries,
     updateInquiryStatus,
     deleteInquiry,
+    visitorCount,
+    visitorLogs,
+    refreshVisitorLogs,
+    deleteVisitorLog,
+    clearVisitorLogs,
     refreshData,
   } = useData();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
   const [copiedSql, setCopiedSql] = useState(false);
+  const [visitorSearch, setVisitorSearch] = useState('');
+  const [visitorFilter, setVisitorFilter] = useState<string>('All');
+  const [refreshingVisitors, setRefreshingVisitors] = useState(false);
 
   // Supabase Credentials form state
   const creds = getSupabaseCredentials();
@@ -122,6 +135,7 @@ export const AdminDashboard: React.FC = () => {
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'visitors', label: `Website Visitors (${visitorLogs.length})`, icon: Users },
     { id: 'profile', label: 'Profile Management', icon: User },
     { id: 'homepage', label: 'Homepage / Hero', icon: Home },
     { id: 'about', label: 'About Narrative', icon: FileText },
@@ -359,6 +373,27 @@ CREATE TABLE IF NOT EXISTS public.site_analytics (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS public.visitor_logs (
+  id TEXT PRIMARY KEY,
+  visitor_id TEXT NOT NULL,
+  visited_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  ip_address TEXT,
+  country TEXT,
+  country_code TEXT,
+  city TEXT,
+  region TEXT,
+  isp TEXT,
+  device_type TEXT NOT NULL,
+  os TEXT NOT NULL,
+  browser TEXT NOT NULL,
+  screen_resolution TEXT,
+  language TEXT,
+  referrer TEXT,
+  landing_page TEXT,
+  visit_type TEXT NOT NULL DEFAULT 'New Visitor',
+  visit_number INT NOT NULL DEFAULT 1
+);
+
 CREATE TABLE IF NOT EXISTS public.contact_inquiries (
   id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   name TEXT NOT NULL,
@@ -384,6 +419,7 @@ ALTER TABLE public.skills ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.testimonials ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.achievements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.site_analytics ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.visitor_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contact_inquiries ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Public profiles read" ON public.profiles FOR SELECT USING (true);
@@ -399,6 +435,7 @@ CREATE POLICY "Public testimonials read" ON public.testimonials FOR SELECT USING
 CREATE POLICY "Public achievements read" ON public.achievements FOR SELECT USING (is_published = true);
 CREATE POLICY "Public site_analytics read" ON public.site_analytics FOR SELECT USING (true);
 CREATE POLICY "Public site_analytics upsert" ON public.site_analytics FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public insert visitor_logs" ON public.visitor_logs FOR INSERT WITH CHECK (true);
 CREATE POLICY "Public submit inquiry" ON public.contact_inquiries FOR INSERT WITH CHECK (true);
 
 CREATE POLICY "Admin full profiles" ON public.profiles FOR ALL TO authenticated USING (true) WITH CHECK (true);
@@ -412,6 +449,7 @@ CREATE POLICY "Admin full certifications" ON public.certifications FOR ALL TO au
 CREATE POLICY "Admin full skills" ON public.skills FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Admin full testimonials" ON public.testimonials FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Admin full achievements" ON public.achievements FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Admin full visitor_logs" ON public.visitor_logs FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO authenticated USING (true) WITH CHECK (true);
 `;
 
@@ -537,7 +575,16 @@ CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO auth
             </div>
 
             {/* Quick Metrics Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+              <button
+                type="button"
+                onClick={() => setActiveAdminTab('visitors')}
+                className="p-5 bg-slate-900 hover:bg-slate-900/80 border border-cyan-500/35 rounded-2xl text-left transition-colors"
+              >
+                <span className="text-xs text-slate-400 block mb-1">Website Visits</span>
+                <span className="text-3xl font-extrabold text-cyan-300 font-mono">{visitorCount.toLocaleString()}</span>
+                <span className="text-[11px] text-emerald-400 block mt-1">{visitorLogs.length} detailed logs →</span>
+              </button>
               <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl">
                 <span className="text-xs text-slate-400 block mb-1">Active Services</span>
                 <span className="text-3xl font-extrabold text-white font-mono">{services.length}</span>
@@ -553,7 +600,7 @@ CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO auth
                 <span className="text-3xl font-extrabold text-white font-mono">{skills.length}</span>
                 <span className="text-[11px] text-emerald-400 block mt-1">Across 4 domains</span>
               </div>
-              <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl">
+              <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl col-span-2 sm:col-span-1">
                 <span className="text-xs text-slate-400 block mb-1">New Inquiries</span>
                 <span className="text-3xl font-extrabold text-cyan-400 font-mono">
                   {inquiries.filter((i) => i.status === 'new').length}
@@ -562,8 +609,8 @@ CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO auth
               </div>
             </div>
 
-            {/* Quick Actions & Status */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Quick Actions, Status, Recent Inquiries & Recent Visitors */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
                 <h3 className="text-base font-bold text-white">Database Status</h3>
                 <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-2 text-xs">
@@ -583,12 +630,12 @@ CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO auth
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 pt-2">
+                <div className="flex flex-wrap items-center gap-3 pt-2">
                   <button
                     onClick={() => setActiveAdminTab('supabase_hub')}
                     className="px-4 py-2 text-xs font-semibold text-slate-950 bg-cyan-400 hover:bg-cyan-300 rounded-xl transition-colors"
                   >
-                    Supabase Settings & SQL Exporter
+                    Supabase Settings & SQL
                   </button>
                   <button
                     onClick={() => navigateTo('home')}
@@ -620,18 +667,59 @@ CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO auth
                         key={inq.id}
                         className="p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs flex items-center justify-between"
                       >
-                        <div>
-                          <span className="font-semibold text-white block">{inq.name}</span>
-                          <span className="text-[11px] text-slate-400">{inq.email} · {inq.service_interest || 'General'}</span>
+                        <div className="min-w-0 pr-2">
+                          <span className="font-semibold text-white block truncate">{inq.name}</span>
+                          <span className="text-[11px] text-slate-400 block truncate">{inq.email} · {inq.service_interest || 'General'}</span>
                         </div>
                         <span
-                          className={`text-[10px] font-mono px-2 py-0.5 rounded ${
+                          className={`text-[10px] font-mono px-2 py-0.5 rounded shrink-0 ${
                             inq.status === 'new'
                               ? 'bg-cyan-950 text-cyan-300 border border-cyan-800'
                               : 'bg-slate-800 text-slate-400'
                           }`}
                         >
                           {inq.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Recent Website Visitors Quick Glance */}
+              <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-bold text-white flex items-center gap-2">
+                    <Globe className="w-4 h-4 text-cyan-400" />
+                    <span>Recent Visitors</span>
+                  </h3>
+                  <button
+                    onClick={() => setActiveAdminTab('visitors')}
+                    className="text-xs text-cyan-400 hover:underline"
+                  >
+                    View All ({visitorLogs.length})
+                  </button>
+                </div>
+
+                {visitorLogs.length === 0 ? (
+                  <p className="text-xs text-slate-400 py-6 text-center">No visitor logs recorded yet.</p>
+                ) : (
+                  <div className="space-y-2.5">
+                    {visitorLogs.slice(0, 3).map((v) => (
+                      <div
+                        key={v.id}
+                        className="p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs flex items-center justify-between gap-2"
+                      >
+                        <div className="min-w-0">
+                          <span className="font-semibold text-white block truncate">
+                            {v.city ? `${v.city}, ${v.country || ''}` : (v.country || 'Visitor')}
+                          </span>
+                          <span className="text-[11px] text-slate-400 block truncate">
+                            {v.device_type} · {v.os} · {v.browser}
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800 shrink-0">
+                          {v.ip_address && v.ip_address !== 'Unavailable' ? v.ip_address : v.visit_type === 'New Visitor' ? 'New' : `#${v.visit_number}`}
                         </span>
                       </div>
                     ))}
@@ -3066,6 +3154,308 @@ CREATE POLICY "Admin full inquiries" ON public.contact_inquiries FOR ALL TO auth
             )}
           </div>
         )}
+
+        {/* 16b. WEBSITE VISITORS LOG & ANALYTICS */}
+        {activeAdminTab === 'visitors' && (() => {
+          const query = visitorSearch.trim().toLowerCase();
+          const filteredVisitors = visitorLogs.filter((v) => {
+            const matchesFilter =
+              visitorFilter === 'All' ||
+              v.device_type === visitorFilter ||
+              v.visit_type === visitorFilter;
+            if (!matchesFilter) return false;
+            if (!query) return true;
+            return (
+              (v.ip_address || '').toLowerCase().includes(query) ||
+              (v.country || '').toLowerCase().includes(query) ||
+              (v.city || '').toLowerCase().includes(query) ||
+              (v.os || '').toLowerCase().includes(query) ||
+              (v.browser || '').toLowerCase().includes(query) ||
+              (v.referrer || '').toLowerCase().includes(query) ||
+              (v.isp || '').toLowerCase().includes(query)
+            );
+          });
+
+          const uniqueVisitorIds = new Set(visitorLogs.map((v) => v.visitor_id)).size;
+          const mobileCount = visitorLogs.filter((v) => v.device_type === 'Mobile').length;
+          const mobilePct = visitorLogs.length > 0 ? Math.round((mobileCount / visitorLogs.length) * 100) : 0;
+          const todayStr = new Date().toISOString().slice(0, 10);
+          const todayCount = visitorLogs.filter((v) => (v.visited_at || '').startsWith(todayStr)).length;
+
+          const handleExportCsv = () => {
+            const headers = [
+              'Visited At',
+              'Visitor ID',
+              'Visit Type',
+              'Visit Number',
+              'IP Address',
+              'Country',
+              'City',
+              'Region',
+              'ISP',
+              'Device',
+              'OS',
+              'Browser',
+              'Screen',
+              'Language',
+              'Referrer',
+              'Landing Page',
+            ];
+            const escapeCsv = (val: any) => `"${String(val ?? '').replace(/"/g, '""')}"`;
+            const rows = filteredVisitors.map((v) =>
+              [
+                v.visited_at,
+                v.visitor_id,
+                v.visit_type,
+                v.visit_number,
+                v.ip_address || '',
+                v.country || '',
+                v.city || '',
+                v.region || '',
+                v.isp || '',
+                v.device_type,
+                v.os,
+                v.browser,
+                v.screen_resolution,
+                v.language,
+                v.referrer,
+                v.landing_page,
+              ]
+                .map(escapeCsv)
+                .join(',')
+            );
+            const csvContent = [headers.join(','), ...rows].join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `mahdi-website-visitors-${todayStr}.csv`;
+            link.click();
+            URL.revokeObjectURL(url);
+          };
+
+          return (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h1 className="text-2xl font-extrabold text-white flex items-center gap-2">
+                    <Users className="w-6 h-6 text-cyan-400" />
+                    <span>Website Visitors &amp; Traffic Analytics</span>
+                  </h1>
+                  <p className="text-sm text-slate-400 mt-1">
+                    Track who visited your portfolio — location, IP, device, browser, traffic source, and session history.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setRefreshingVisitors(true);
+                      await refreshVisitorLogs();
+                      setRefreshingVisitors(false);
+                      showSuccessBanner('Visitor logs refreshed!');
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-200 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-xl transition-colors"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 text-cyan-400 ${refreshingVisitors ? 'animate-spin' : ''}`} />
+                    <span>Refresh</span>
+                  </button>
+
+                  {filteredVisitors.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleExportCsv}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-950 bg-cyan-400 hover:bg-cyan-300 rounded-xl transition-colors"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Export CSV</span>
+                    </button>
+                  )}
+
+                  {visitorLogs.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (confirm('Clear all recorded visitor logs?')) {
+                          await clearVisitorLogs();
+                          showSuccessBanner('Visitor logs cleared');
+                        }
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-rose-300 bg-rose-950/50 hover:bg-rose-900/60 border border-rose-500/40 rounded-xl transition-colors"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Clear All</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Visitor Summary Cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
+                  <span className="text-xs text-slate-400 block mb-1">Total Counter</span>
+                  <span className="text-2xl font-extrabold text-white font-mono">{visitorCount.toLocaleString()}</span>
+                  <span className="text-[11px] text-cyan-400 block mt-1">All-time site hits</span>
+                </div>
+                <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
+                  <span className="text-xs text-slate-400 block mb-1">Logged Sessions</span>
+                  <span className="text-2xl font-extrabold text-cyan-300 font-mono">{visitorLogs.length}</span>
+                  <span className="text-[11px] text-emerald-400 block mt-1">{todayCount} visited today</span>
+                </div>
+                <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
+                  <span className="text-xs text-slate-400 block mb-1">Unique Visitors</span>
+                  <span className="text-2xl font-extrabold text-white font-mono">{uniqueVisitorIds}</span>
+                  <span className="text-[11px] text-slate-400 block mt-1">Tracked browsers</span>
+                </div>
+                <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
+                  <span className="text-xs text-slate-400 block mb-1">Mobile Traffic</span>
+                  <span className="text-2xl font-extrabold text-purple-300 font-mono">{mobilePct}%</span>
+                  <span className="text-[11px] text-slate-400 block mt-1">{100 - mobilePct}% Desktop / Tablet</span>
+                </div>
+              </div>
+
+              {/* Cloud Sync Notice when Supabase isn't configured */}
+              {!isCloudConnected && (
+                <div className="p-4 bg-amber-950/30 border border-amber-500/30 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-amber-200">
+                  <div>
+                    <strong className="text-amber-300">Local Browser Tracking Active:</strong>{' '}
+                    Currently tracking visits inside this browser. Connect your free Supabase database in{' '}
+                    <span className="font-mono text-cyan-300">Supabase &amp; SQL Hub</span> to log every global visitor across all phones &amp; PCs centrally.
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveAdminTab('supabase_hub')}
+                    className="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/50 rounded-lg text-amber-200 font-semibold shrink-0"
+                  >
+                    Connect Cloud DB →
+                  </button>
+                </div>
+              )}
+
+              {/* Search & Filter Controls */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={visitorSearch}
+                    onChange={(e) => setVisitorSearch(e.target.value)}
+                    placeholder="Search by Country, City, IP, OS, Browser, or Source..."
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
+                  />
+                </div>
+                <select
+                  value={visitorFilter}
+                  onChange={(e) => setVisitorFilter(e.target.value)}
+                  className="px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-cyan-400"
+                >
+                  <option value="All">All Visitors ({visitorLogs.length})</option>
+                  <option value="Mobile">Mobile Only</option>
+                  <option value="Desktop">Desktop Only</option>
+                  <option value="Tablet">Tablet Only</option>
+                  <option value="New Visitor">New Visitors</option>
+                  <option value="Returning Visitor">Returning Visitors</option>
+                </select>
+              </div>
+
+              {/* Visitor Logs List */}
+              {filteredVisitors.length === 0 ? (
+                <div className="p-12 bg-slate-900 border border-slate-800 rounded-2xl text-center text-slate-400 text-sm">
+                  {visitorLogs.length === 0
+                    ? 'No visitor sessions logged yet. Open the homepage in a new tab or refresh to record your first session!'
+                    : 'No visitor records match your search/filter.'}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {filteredVisitors.map((v) => (
+                    <div
+                      key={v.id}
+                      className="p-4 sm:p-5 bg-slate-900 border border-slate-800 hover:border-cyan-500/40 rounded-2xl transition-colors flex flex-col lg:flex-row lg:items-center justify-between gap-4"
+                    >
+                      <div className="flex items-start gap-3.5 min-w-0">
+                        <div className="p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-cyan-400 shrink-0">
+                          {v.device_type === 'Mobile' ? (
+                            <Smartphone className="w-5 h-5 text-emerald-400" />
+                          ) : (
+                            <Monitor className="w-5 h-5 text-cyan-400" />
+                          )}
+                        </div>
+
+                        <div className="min-w-0 space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-sm font-bold text-white">
+                              {v.city ? `${v.city}${v.region ? `, ${v.region}` : ''}, ${v.country || ''}` : v.country || 'Unknown Location'}
+                            </span>
+                            {v.country_code && (
+                              <span className="text-[10px] font-mono px-1.5 py-0.5 bg-slate-800 text-cyan-300 rounded">
+                                {v.country_code}
+                              </span>
+                            )}
+                            <span
+                              className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
+                                v.visit_type === 'New Visitor'
+                                  ? 'bg-emerald-950/60 text-emerald-300 border-emerald-500/40'
+                                  : 'bg-cyan-950/60 text-cyan-300 border-cyan-500/40'
+                              }`}
+                            >
+                              {v.visit_type} (#{v.visit_number})
+                            </span>
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
+                            <span className="font-mono text-cyan-400">
+                              IP: {v.ip_address || 'Unavailable'}
+                            </span>
+                            {v.isp && <span>· ISP: {v.isp}</span>}
+                            <span>
+                              · {v.device_type} ({v.os} · {v.browser})
+                            </span>
+                            <span>· Screen: {v.screen_resolution}</span>
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-400">
+                            <span>
+                              Source: <strong className="text-slate-200">{v.referrer || 'Direct Visit'}</strong>
+                            </span>
+                            <span>
+                              · Page: <code className="text-cyan-300">{v.landing_page || '/'}</code>
+                            </span>
+                            <span>· Lang: {v.language}</span>
+                            <span className="font-mono text-slate-500">· ID: {v.visitor_id}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between lg:justify-end gap-3 shrink-0 border-t lg:border-t-0 border-slate-800/80 pt-3 lg:pt-0">
+                        <div className="text-left lg:text-right">
+                          <span className="text-xs font-mono text-slate-200 block">
+                            {new Date(v.visited_at).toLocaleDateString()}
+                          </span>
+                          <span className="text-[11px] font-mono text-slate-400">
+                            {new Date(v.visited_at).toLocaleTimeString()}
+                          </span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            await deleteVisitorLog(v.id);
+                            showSuccessBanner('Visitor record deleted');
+                          }}
+                          className="p-2 text-slate-500 hover:text-rose-400 bg-slate-950 border border-slate-800 rounded-lg transition-colors"
+                          title="Delete record"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* 17. SUPABASE & SQL SETUP HUB */}
         {activeAdminTab === 'supabase_hub' && (

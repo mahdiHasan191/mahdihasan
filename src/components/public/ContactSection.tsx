@@ -140,11 +140,14 @@ ${data.message}`;
               {language === 'bn' ? 'সরাসরি বার্তা ও আলোচনা' : 'Direct Inquiries & Collaboration'}
             </span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight pb-0.5 animate-section-heading">
             {language === 'bn'
               ? 'Sales Acceleration ও AI Automation নিয়ে আলোচনা করুন'
               : 'Let’s Discuss Sales Acceleration & AI Automation'}
           </h2>
+          <div className="relative w-28 sm:w-36 h-[3px] rounded-full bg-slate-800/90 overflow-hidden mt-2.5 mx-auto">
+            <div className="animate-heading-beam w-14 h-full bg-gradient-to-r from-transparent via-cyan-400 to-emerald-400" />
+          </div>
           <p className="mt-3 text-sm sm:text-base text-slate-300 leading-relaxed">
             {language === 'bn'
               ? 'নিচের ফর্মের মাধ্যমে বার্তাটি সরাসরি Mahdi Hasan-এর Gmail (' +

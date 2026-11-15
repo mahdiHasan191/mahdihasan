@@ -90,16 +90,16 @@ export const AIAutomationMotionOverlay: React.FC = () => {
       onMouseLeave={() => setIsPaused(false)}
       className="w-full sm:w-[430px] md:w-[470px] lg:w-[505px] sm:absolute sm:left-5 md:left-7 lg:left-10 sm:top-1/2 sm:-translate-y-1/2 z-30 pointer-events-auto"
     >
-      <div className="bg-[#070d1c]/92 backdrop-blur-xl border border-slate-700/80 rounded-2xl p-3 sm:p-4 shadow-2xl shadow-black/85 space-y-2.5">
+      <div className="bg-transparent backdrop-blur-[2px] border border-cyan-500/20 rounded-2xl p-3 sm:p-4 space-y-2.5">
         {/* Top Bar */}
-        <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-800/80">
+        <div className="flex items-center justify-between gap-2 pb-2 border-b border-cyan-500/20">
           <div className="min-w-0">
-            <h3 className="text-xs sm:text-sm font-extrabold text-white tracking-tight truncate">
+            <h3 className="text-xs sm:text-sm font-extrabold text-white tracking-tight truncate drop-shadow-[0_1px_6px_rgba(2,6,23,0.95)]">
               {isBn
                 ? 'বিজনেস গ্রোথ, প্রফিট ও মানি সেভ অটোমেশন'
                 : 'AI Automation for Growth, Profit & Money Saving'}
             </h3>
-            <p className="text-[10px] text-slate-400 truncate mt-0.5">
+            <p className="text-[10px] text-slate-300 truncate mt-0.5 drop-shadow-[0_1px_5px_rgba(2,6,23,0.95)]">
               {isBn
                 ? 'MH বিজনেস অটোমেশন হাব — রিয়েল-টাইম বিজনেস সলিউশন ওয়ার্কফ্লো'
                 : 'MH Business Automation Hub turning inquiries into revenue & savings'}
@@ -109,7 +109,7 @@ export const AIAutomationMotionOverlay: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsPaused((p) => !p)}
-            className="btn-glow-soft p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-cyan-500/30 text-slate-300 hover:text-cyan-300 transition-colors shrink-0"
+            className="btn-glow-soft p-1.5 rounded-lg bg-slate-950/60 hover:bg-slate-900/80 border border-cyan-500/35 text-slate-200 hover:text-cyan-300 transition-colors shrink-0"
             title={isPaused ? 'Resume animation' : 'Pause animation'}
             aria-label={isPaused ? 'Resume workflow' : 'Pause workflow'}
           >
@@ -121,8 +121,8 @@ export const AIAutomationMotionOverlay: React.FC = () => {
           </button>
         </div>
 
-        {/* Glowing Multi-Branch n8n Business Workflow Canvas */}
-        <div className="relative w-full rounded-xl bg-[#080f21] border border-slate-800/90 overflow-hidden bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:14px_14px] p-1">
+        {/* Transparent Multi-Branch n8n Business Workflow Canvas */}
+        <div className="relative w-full rounded-xl bg-transparent border border-cyan-500/15 overflow-hidden p-1">
           <svg
             viewBox="0 0 520 278"
             className="w-full h-auto overflow-visible select-none"
@@ -367,23 +367,52 @@ export const AIAutomationMotionOverlay: React.FC = () => {
               </text>
             </g>
 
-            {/* ================= CENTRAL HUB: SCI-FI MH ELECTRIC SPARK CORE ================= */}
+            {/* ================= CENTRAL HUB: PRO SCI-FI QUANTUM ARC REACTOR & PLASMA SPARK CORE ================= */}
             <g onClick={() => setActiveStage(1)} className="cursor-pointer">
-              {/* Main Glowing Outer Hub Frame */}
+              {/* Main Glowing Outer Hub Frame (Translucent Glass + Neon Gradient Border) */}
               <rect
                 x="134"
                 y="106"
                 width="88"
                 height="78"
                 rx="16"
-                fill="#0f172a"
+                fill="#071122"
+                fillOpacity="0.72"
                 stroke={`url(#${hubGradId})`}
                 strokeWidth={activeStage === 1 ? '3' : '2.2'}
                 filter={`url(#${neonGlowId})`}
               />
 
-              {/* Subtle Sci-Fi Plasma Core Aura */}
+              {/* Multi-Layer Plasma Core Aura */}
               <circle cx="178" cy="145" r="36" fill={`url(#${coreAuraId})`} />
+
+              {/* Counter-Rotating Precision Quantum Orbital Rings around MH */}
+              <g className="animate-mh-orbit-cw">
+                <circle
+                  cx="178"
+                  cy="145"
+                  r="31"
+                  fill="none"
+                  stroke="#22d3ee"
+                  strokeOpacity="0.45"
+                  strokeWidth="1.15"
+                  strokeDasharray="16 8 4 8"
+                  strokeLinecap="round"
+                />
+              </g>
+              <g className="animate-mh-orbit-ccw">
+                <circle
+                  cx="178"
+                  cy="145"
+                  r="25"
+                  fill="none"
+                  stroke="#34d399"
+                  strokeOpacity="0.5"
+                  strokeWidth="1"
+                  strokeDasharray="10 10 2 10"
+                  strokeLinecap="round"
+                />
+              </g>
 
               {/* Left Input Ports */}
               <circle cx="134" cy="130" r="3.5" fill="#34d399" />
@@ -397,95 +426,120 @@ export const AIAutomationMotionOverlay: React.FC = () => {
               <circle cx="222" cy="160" r="3.5" fill="#fbbf24" />
               <circle cx="222" cy="174" r="3.5" fill="#34d399" />
 
-              {/* Electric Lightning Spark Bolts around MH */}
-              <path
-                d="M 155 133 L 146 123 L 151 121 L 143 113"
-                fill="none"
-                stroke="#67e8f9"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="animate-spark-bolt-1"
-              />
-              <path
-                d="M 199 133 L 208 124 L 203 121 L 213 114"
-                fill="none"
-                stroke="#34d399"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="animate-spark-bolt-2"
-              />
-              <path
-                d="M 156 158 L 146 167 L 150 170 L 142 177"
-                fill="none"
-                stroke="#38bdf8"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="animate-spark-bolt-3"
-              />
-              <path
-                d="M 199 157 L 209 166 L 204 169 L 213 176"
-                fill="none"
-                stroke="#fde047"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="animate-spark-bolt-4"
-              />
+              {/* Pro Dual-Stroke Plasma Arcs (Outer Neon Halo + White-Hot Arc Core) */}
+              <g filter={`url(#${neonGlowId})`}>
+                <path
+                  d="M 155 130 Q 148 122 141 114"
+                  fill="none"
+                  stroke="#22d3ee"
+                  strokeWidth="2.4"
+                  strokeLinecap="round"
+                  className="animate-spark-bolt-1"
+                />
+                <path
+                  d="M 155 130 Q 148 122 141 114"
+                  fill="none"
+                  stroke="#ffffff"
+                  strokeWidth="0.9"
+                  strokeLinecap="round"
+                  className="animate-spark-bolt-1"
+                />
 
-              {/* Flying Plasma Spark Particles bursting from MH */}
-              <circle
-                cx="166"
-                cy="132"
-                r="1.8"
-                fill="#67e8f9"
-                className="animate-spark-fly"
-                style={{ '--sx': '-14px', '--sy': '-15px', animationDelay: '0s' } as React.CSSProperties}
-              />
-              <circle
-                cx="191"
-                cy="132"
-                r="1.9"
-                fill="#34d399"
-                className="animate-spark-fly"
-                style={{ '--sx': '16px', '--sy': '-14px', animationDelay: '0.35s' } as React.CSSProperties}
-              />
-              <circle
-                cx="178"
-                cy="128"
-                r="1.6"
-                fill="#ffffff"
-                className="animate-spark-fly"
-                style={{ '--sx': '2px', '--sy': '-17px', animationDelay: '0.7s' } as React.CSSProperties}
-              />
+                <path
+                  d="M 201 130 Q 208 122 215 114"
+                  fill="none"
+                  stroke="#34d399"
+                  strokeWidth="2.4"
+                  strokeLinecap="round"
+                  className="animate-spark-bolt-2"
+                />
+                <path
+                  d="M 201 130 Q 208 122 215 114"
+                  fill="none"
+                  stroke="#ffffff"
+                  strokeWidth="0.9"
+                  strokeLinecap="round"
+                  className="animate-spark-bolt-2"
+                />
+
+                <path
+                  d="M 155 160 Q 148 168 141 176"
+                  fill="none"
+                  stroke="#38bdf8"
+                  strokeWidth="2.4"
+                  strokeLinecap="round"
+                  className="animate-spark-bolt-3"
+                />
+                <path
+                  d="M 155 160 Q 148 168 141 176"
+                  fill="none"
+                  stroke="#ffffff"
+                  strokeWidth="0.9"
+                  strokeLinecap="round"
+                  className="animate-spark-bolt-3"
+                />
+
+                <path
+                  d="M 201 160 Q 208 168 215 176"
+                  fill="none"
+                  stroke="#a78bfa"
+                  strokeWidth="2.4"
+                  strokeLinecap="round"
+                  className="animate-spark-bolt-4"
+                />
+                <path
+                  d="M 201 160 Q 208 168 215 176"
+                  fill="none"
+                  stroke="#ffffff"
+                  strokeWidth="0.9"
+                  strokeLinecap="round"
+                  className="animate-spark-bolt-4"
+                />
+              </g>
+
+              {/* Micro Precision Plasma Embers */}
               <circle
                 cx="164"
-                cy="158"
-                r="1.8"
-                fill="#38bdf8"
+                cy="130"
+                r="1.6"
+                fill="#e0f2fe"
                 className="animate-spark-fly"
-                style={{ '--sx': '-16px', '--sy': '14px', animationDelay: '0.5s' } as React.CSSProperties}
+                style={{ '--sx': '-14px', '--sy': '-14px', animationDelay: '0s' } as React.CSSProperties}
               />
               <circle
                 cx="192"
-                cy="158"
-                r="1.9"
-                fill="#fbbf24"
+                cy="130"
+                r="1.6"
+                fill="#a7f3d0"
                 className="animate-spark-fly"
-                style={{ '--sx': '15px', '--sy': '15px', animationDelay: '0.95s' } as React.CSSProperties}
+                style={{ '--sx': '14px', '--sy': '-14px', animationDelay: '0.4s' } as React.CSSProperties}
               />
               <circle
                 cx="178"
-                cy="161"
-                r="1.5"
-                fill="#a7f3d0"
+                cy="126"
+                r="1.4"
+                fill="#ffffff"
                 className="animate-spark-fly"
-                style={{ '--sx': '-3px', '--sy': '16px', animationDelay: '1.15s' } as React.CSSProperties}
+                style={{ '--sx': '0px', '--sy': '-17px', animationDelay: '0.8s' } as React.CSSProperties}
+              />
+              <circle
+                cx="164"
+                cy="160"
+                r="1.6"
+                fill="#67e8f9"
+                className="animate-spark-fly"
+                style={{ '--sx': '-14px', '--sy': '14px', animationDelay: '0.6s' } as React.CSSProperties}
+              />
+              <circle
+                cx="192"
+                cy="160"
+                r="1.6"
+                fill="#fde68a"
+                className="animate-spark-fly"
+                style={{ '--sx': '14px', '--sy': '14px', animationDelay: '1.05s' } as React.CSSProperties}
               />
 
-              {/* Crisp, Mobile-Guaranteed Sci-Fi MH Emblem */}
+              {/* Crisp, Mobile-Guaranteed Holographic MH Emblem */}
               <g className="animate-mh-surge">
                 <text
                   x="178"
@@ -493,8 +547,8 @@ export const AIAutomationMotionOverlay: React.FC = () => {
                   textAnchor="middle"
                   fill={`url(#${textGradId})`}
                   stroke="#e0f2fe"
-                  strokeWidth="0.35"
-                  fontSize="30"
+                  strokeWidth="0.4"
+                  fontSize="29"
                   fontWeight="900"
                   letterSpacing="2"
                   fontFamily="var(--font-mono), monospace, sans-serif"
@@ -503,10 +557,26 @@ export const AIAutomationMotionOverlay: React.FC = () => {
                 </text>
               </g>
 
-              <text x="178" y="198" textAnchor="middle" fill="#f8fafc" fontSize="10" fontWeight="700">
+              <text
+                x="178"
+                y="198"
+                textAnchor="middle"
+                fill="#f8fafc"
+                fontSize="10"
+                fontWeight="700"
+                style={{ paintOrder: 'stroke', stroke: '#020617', strokeWidth: '2.5px', strokeLinejoin: 'round' }}
+              >
                 MH Business
               </text>
-              <text x="178" y="210" textAnchor="middle" fill="#94a3b8" fontSize="9.5" fontWeight="600">
+              <text
+                x="178"
+                y="210"
+                textAnchor="middle"
+                fill="#cbd5e1"
+                fontSize="9.5"
+                fontWeight="600"
+                style={{ paintOrder: 'stroke', stroke: '#020617', strokeWidth: '2.5px', strokeLinejoin: 'round' }}
+              >
                 Automation Hub
               </text>
             </g>
@@ -637,8 +707,8 @@ export const AIAutomationMotionOverlay: React.FC = () => {
         </div>
 
         {/* Bottom Active Stage Outcome + "Solutions" Button Linked to Services */}
-        <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between gap-2.5">
-          <div className="min-w-0 flex-1">
+        <div className="pt-2 border-t border-cyan-500/20 flex items-center justify-between gap-2.5">
+          <div className="min-w-0 flex-1 drop-shadow-[0_1px_5px_rgba(2,6,23,0.95)]">
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
               <span className="text-[11px] sm:text-xs font-bold text-white truncate">
@@ -648,7 +718,7 @@ export const AIAutomationMotionOverlay: React.FC = () => {
                 · {current.metric}
               </span>
             </div>
-            <p className="text-[10px] text-slate-300 truncate mt-0.5">
+            <p className="text-[10px] text-slate-200 truncate mt-0.5">
               {isBn ? current.descBn : current.desc}
             </p>
           </div>

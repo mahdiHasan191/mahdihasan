@@ -198,3 +198,24 @@ export interface Achievement {
   is_published: boolean;
   created_at?: string;
 }
+
+export interface VisitorLog {
+  id: string;
+  visitor_id: string;
+  visited_at: string;
+  ip_address?: string;
+  country?: string;
+  country_code?: string;
+  city?: string;
+  region?: string;
+  isp?: string;
+  device_type: 'Mobile' | 'Tablet' | 'Desktop';
+  os: string;
+  browser: string;
+  screen_resolution: string;
+  language: string;
+  referrer: string;
+  landing_page: string;
+  visit_type: 'New Visitor' | 'Returning Visitor';
+  visit_number: number;
+}

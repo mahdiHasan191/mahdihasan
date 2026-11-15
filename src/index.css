@@ -125,92 +125,111 @@
     ownerGradientShimmer 6s ease-in-out 0.85s infinite;
 }
 
+@keyframes mhOrbitSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 @keyframes sparkBoltFlash {
-  0%, 48%, 100% {
+  0%, 56%, 100% {
     opacity: 0;
-    stroke-dashoffset: 36;
+    stroke-dashoffset: 34;
   }
-  8% {
+  7% {
     opacity: 1;
-    stroke-dashoffset: 18;
+    stroke-dashoffset: 16;
   }
-  15% {
-    opacity: 0.25;
-    stroke-dashoffset: 10;
+  14% {
+    opacity: 0.35;
+    stroke-dashoffset: 9;
   }
-  23% {
+  22% {
     opacity: 1;
     stroke-dashoffset: 0;
   }
-  36% {
-    opacity: 0.7;
-    stroke-dashoffset: -10;
+  38% {
+    opacity: 0.65;
+    stroke-dashoffset: -12;
   }
 }
 
 @keyframes sparkFlyOut {
   0% {
     opacity: 0;
-    transform: translate3d(0px, 0px, 0) scale3d(0.3, 0.3, 1);
+    transform: translate3d(0px, 0px, 0) scale3d(0.25, 0.25, 1);
   }
-  20% {
+  18% {
     opacity: 1;
-    transform: translate3d(calc(var(--sx, 12px) * 0.35), calc(var(--sy, -12px) * 0.35), 0) scale3d(1.2, 1.2, 1);
+    transform: translate3d(calc(var(--sx, 12px) * 0.3), calc(var(--sy, -12px) * 0.3), 0) scale3d(1.15, 1.15, 1);
   }
-  75% {
+  72% {
     opacity: 0.85;
-    transform: translate3d(var(--sx, 12px), var(--sy, -12px), 0) scale3d(0.8, 0.8, 1);
+    transform: translate3d(var(--sx, 12px), var(--sy, -12px), 0) scale3d(0.75, 0.75, 1);
   }
   100% {
     opacity: 0;
-    transform: translate3d(calc(var(--sx, 12px) * 1.25), calc(var(--sy, -12px) * 1.25), 0) scale3d(0.1, 0.1, 1);
+    transform: translate3d(calc(var(--sx, 12px) * 1.25), calc(var(--sy, -12px) * 1.25), 0) scale3d(0.08, 0.08, 1);
   }
 }
 
 @keyframes mhElectricSurge {
   0%, 100% {
-    opacity: 0.92;
+    opacity: 0.94;
     transform: scale3d(1, 1, 1);
-  }
-  45% {
-    opacity: 1;
-    transform: scale3d(1.03, 1.03, 1);
   }
   50% {
     opacity: 1;
-    transform: scale3d(1.045, 1.045, 1);
+    transform: scale3d(1.035, 1.035, 1);
   }
 }
 
+.animate-mh-orbit-cw {
+  transform-box: view-box;
+  transform-origin: 178px 145px;
+  will-change: transform;
+  animation: mhOrbitSpin 9s linear infinite;
+}
+
+.animate-mh-orbit-ccw {
+  transform-box: view-box;
+  transform-origin: 178px 145px;
+  will-change: transform;
+  animation: mhOrbitSpin 13s linear reverse infinite;
+}
+
 .animate-spark-bolt-1 {
-  stroke-dasharray: 26 16;
+  stroke-dasharray: 24 14;
   will-change: stroke-dashoffset, opacity;
-  animation: sparkBoltFlash 1.55s ease-out infinite;
+  animation: sparkBoltFlash 1.65s cubic-bezier(0.22, 1, 0.36, 1) infinite;
 }
 
 .animate-spark-bolt-2 {
-  stroke-dasharray: 24 16;
+  stroke-dasharray: 22 14;
   will-change: stroke-dashoffset, opacity;
-  animation: sparkBoltFlash 1.75s ease-out 0.45s infinite;
+  animation: sparkBoltFlash 1.85s cubic-bezier(0.22, 1, 0.36, 1) 0.4s infinite;
 }
 
 .animate-spark-bolt-3 {
-  stroke-dasharray: 26 16;
+  stroke-dasharray: 24 14;
   will-change: stroke-dashoffset, opacity;
-  animation: sparkBoltFlash 1.65s ease-out 0.9s infinite;
+  animation: sparkBoltFlash 1.75s cubic-bezier(0.22, 1, 0.36, 1) 0.85s infinite;
 }
 
 .animate-spark-bolt-4 {
-  stroke-dasharray: 22 16;
+  stroke-dasharray: 22 14;
   will-change: stroke-dashoffset, opacity;
-  animation: sparkBoltFlash 1.85s ease-out 1.25s infinite;
+  animation: sparkBoltFlash 1.95s cubic-bezier(0.22, 1, 0.36, 1) 1.2s infinite;
 }
 
 .animate-spark-fly {
   transform-box: fill-box;
   transform-origin: center;
   will-change: transform, opacity;
-  animation: sparkFlyOut 1.35s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  animation: sparkFlyOut 1.45s cubic-bezier(0.22, 1, 0.36, 1) infinite;
 }
 
 .animate-mh-surge {
@@ -218,7 +237,7 @@
   transform-origin: center;
   will-change: transform, opacity;
   filter: drop-shadow(0 0 8px rgba(34, 211, 238, 0.65));
-  animation: mhElectricSurge 2.2s ease-in-out infinite;
+  animation: mhElectricSurge 2.4s ease-in-out infinite;
 }
 
 /* Workflow Pipeline Execution Animations (Stationary Nodes + Flowing Data Signal, GPU 60fps) */
@@ -394,6 +413,38 @@
   transform: scale3d(0.96, 0.96, 1);
 }
 
+/* Animated Section Headings (Holographic Text Shimmer + Laser Scan Accent Bar) */
+@keyframes headingLaserScan {
+  0% {
+    transform: translate3d(-120%, 0, 0);
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(260%, 0, 0);
+    opacity: 0.25;
+  }
+}
+
+.animate-section-heading {
+  background-image: linear-gradient(95deg, #ffffff 0%, #67e8f9 26%, #ffffff 50%, #34d399 74%, #ffffff 100%);
+  background-size: 240% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  will-change: transform, opacity, background-position;
+  animation:
+    ownerNameEntrance 0.85s cubic-bezier(0.22, 1, 0.36, 1) both,
+    ownerGradientShimmer 6.5s ease-in-out 0.4s infinite;
+}
+
+.animate-heading-beam {
+  will-change: transform, opacity;
+  animation: headingLaserScan 2.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
 /* Mobile 60fps smoothness optimization */
 @media (max-width: 639px) {
   .animate-workflow-packet {
@@ -409,6 +460,10 @@
   .animate-flow-down,
   .animate-draw-chart,
   .animate-owner-name-entrance,
+  .animate-section-heading,
+  .animate-heading-beam,
+  .animate-mh-orbit-cw,
+  .animate-mh-orbit-ccw,
   .animate-spark-bolt-1,
   .animate-spark-bolt-2,
   .animate-spark-bolt-3,

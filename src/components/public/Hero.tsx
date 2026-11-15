@@ -202,8 +202,8 @@ export const Hero: React.FC = () => {
             )}
           </div>
 
-          {/* Mobile View: Serpentine Motion Workflow placed cleanly below photo inside card */}
-          <div className="block sm:hidden p-3 bg-slate-950/95 border-t border-slate-800/80">
+          {/* Mobile View: Transparent Serpentine Motion Workflow placed cleanly below photo inside card */}
+          <div className="block sm:hidden p-3 bg-transparent border-t border-slate-800/70">
             <AIAutomationMotionOverlay />
           </div>
 
@@ -257,9 +257,14 @@ export const Hero: React.FC = () => {
             ========================================================================= */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center pt-4">
           <div className="lg:col-span-8 space-y-5 text-left">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white leading-[1.15]">
-              {t('hero.headline')}
-            </h1>
+            <div>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-[1.15] pb-1 animate-section-heading">
+                {t('hero.headline')}
+              </h1>
+              <div className="relative w-28 sm:w-40 h-[3px] rounded-full bg-slate-800/90 overflow-hidden mt-2">
+                <div className="animate-heading-beam w-14 h-full bg-gradient-to-r from-transparent via-cyan-400 to-emerald-400" />
+              </div>
+            </div>
 
             <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-3xl">
               {t('hero.description')}

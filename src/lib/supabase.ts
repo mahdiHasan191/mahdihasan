@@ -12,6 +12,7 @@ import {
   SEOSettings,
   WebsiteSettings,
   Achievement,
+  VisitorLog,
 } from '../types';
 import {
   initialProfile,
@@ -43,6 +44,8 @@ const STORAGE_KEYS = {
   TESTIMONIALS: 'mahdi_data_testimonials_v2',
   ACHIEVEMENTS: 'mahdi_data_achievements_v2',
   VISITOR_COUNT: 'mahdi_visitor_counter_v2',
+  VISITOR_LOGS: 'mahdi_visitor_logs_v2',
+  VISITOR_IDENTITY: 'mahdi_visitor_identity_v2',
   INQUIRIES: 'mahdi_data_inquiries_v2',
 };
 
@@ -770,6 +773,203 @@ export const db = {
       console.warn('Could not set up Supabase realtime subscription for visitor count:', err);
       return () => {};
     }
+  },
+
+  // --- Detailed Website Visitor Logs ---
+  async logVisitorVisit(): Promise<VisitorLog | null> {
+    if (typeof window === 'undefined') return null;
+
+    try {
+      // Detect Device, OS, Browser
+      const ua = navigator.userAgent || '';
+      let device_type: VisitorLog['device_type'] = 'Desktop';
+      if (/iPad|Tablet|PlayBook|Silk/i.test(ua) || (/Android/i.test(ua) && !/Mobile/i.test(ua))) {
+        device_type = 'Tablet';
+      } else if (/Mobile|iPhone|iPod|Android|BlackBerry|IEMobile|Opera Mini/i.test(ua)) {
+        device_type = 'Mobile';
+      }
+
+      let os = 'Unknown OS';
+      if (/Windows NT/i.test(ua)) os = 'Windows';
+      else if (/Android/i.test(ua)) os = 'Android';
+      else if (/iPhone|iPad|iPod/i.test(ua)) os = 'iOS';
+      else if (/Mac OS X/i.test(ua)) os = 'macOS';
+      else if (/Linux/i.test(ua)) os = 'Linux';
+
+      let browser = 'Other';
+      if (/Edg\//i.test(ua)) browser = 'Edge';
+      else if (/OPR\//i.test(ua) || /Opera/i.test(ua)) browser = 'Opera';
+      else if (/Chrome\//i.test(ua) && !/Edg\//i.test(ua)) browser = 'Chrome';
+      else if (/Firefox\//i.test(ua)) browser = 'Firefox';
+      else if (/Safari\//i.test(ua) && !/Chrome\//i.test(ua)) browser = 'Safari';
+
+      // Persistent Visitor Identity (New vs Returning)
+      let visitor_id = 'vis-' + Math.random().toString(36).slice(2, 10);
+      let visit_number = 1;
+      let visit_type: VisitorLog['visit_type'] = 'New Visitor';
+      try {
+        const rawIdent = localStorage.getItem(STORAGE_KEYS.VISITOR_IDENTITY);
+        if (rawIdent) {
+          const parsedIdent = JSON.parse(rawIdent);
+          if (parsedIdent?.visitor_id) {
+            visitor_id = parsedIdent.visitor_id;
+            visit_number = (Number(parsedIdent.visit_count) || 1) + 1;
+            visit_type = 'Returning Visitor';
+          }
+        }
+        localStorage.setItem(
+          STORAGE_KEYS.VISITOR_IDENTITY,
+          JSON.stringify({ visitor_id, visit_count: visit_number, last_seen: new Date().toISOString() })
+        );
+      } catch {
+        // Ignore identity storage issues
+      }
+
+      // Referrer & Landing Page
+      let referrer = 'Direct Visit';
+      if (document.referrer) {
+        try {
+          const refHost = new URL(document.referrer).hostname.replace(/^www\./, '');
+          if (refHost && refHost !== window.location.hostname) {
+            referrer = refHost;
+          }
+        } catch {
+          referrer = document.referrer;
+        }
+      }
+      const landing_page = `${window.location.pathname || '/'}${window.location.hash || ''}`;
+
+      // Non-blocking lightweight Geo-IP enrichment (3s timeout)
+      let ip_address = 'Unavailable';
+      let country = 'Unknown';
+      let country_code = '';
+      let city = '';
+      let region = '';
+      let isp = '';
+
+      const fetchWithTimeout = async (url: string, ms = 3000) => {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), ms);
+        try {
+          const res = await fetch(url, { signal: controller.signal });
+          if (!res.ok) return null;
+          return await res.json();
+        } catch {
+          return null;
+        } finally {
+          clearTimeout(timer);
+        }
+      };
+
+      const geo1 = await fetchWithTimeout('https://ipwho.is/');
+      if (geo1 && geo1.success !== false && geo1.ip) {
+        ip_address = geo1.ip || ip_address;
+        country = geo1.country || country;
+        country_code = geo1.country_code || '';
+        city = geo1.city || '';
+        region = geo1.region || '';
+        isp = geo1.connection?.isp || geo1.connection?.org || '';
+      } else {
+        const geo2 = await fetchWithTimeout('https://ipapi.co/json/');
+        if (geo2 && geo2.ip) {
+          ip_address = geo2.ip || ip_address;
+          country = geo2.country_name || geo2.country || country;
+          country_code = geo2.country_code || '';
+          city = geo2.city || '';
+          region = geo2.region || '';
+          isp = geo2.org || '';
+        }
+      }
+
+      const logEntry: VisitorLog = {
+        id: `vlog-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        visitor_id,
+        visited_at: new Date().toISOString(),
+        ip_address,
+        country,
+        country_code,
+        city,
+        region,
+        isp,
+        device_type,
+        os,
+        browser,
+        screen_resolution: `${window.screen?.width || 0}x${window.screen?.height || 0}`,
+        language: navigator.language || 'en',
+        referrer,
+        landing_page,
+        visit_type,
+        visit_number,
+      };
+
+      // Save to Supabase if configured
+      const client = getSupabase();
+      if (client) {
+        try {
+          await client.from('visitor_logs').insert([logEntry]);
+        } catch (err) {
+          console.warn('Supabase visitor_logs insert skipped:', err);
+        }
+      }
+
+      // Save locally (keep latest 250 logs)
+      const existing = getLocalData<VisitorLog[]>(STORAGE_KEYS.VISITOR_LOGS, []);
+      const updated = [logEntry, ...existing].slice(0, 250);
+      setLocalData(STORAGE_KEYS.VISITOR_LOGS, updated);
+
+      return logEntry;
+    } catch (err) {
+      console.warn('Failed to log visitor:', err);
+      return null;
+    }
+  },
+
+  async getVisitorLogs(): Promise<VisitorLog[]> {
+    const client = getSupabase();
+    if (client) {
+      try {
+        const { data, error } = await client
+          .from('visitor_logs')
+          .select('*')
+          .order('visited_at', { ascending: false })
+          .limit(250);
+        if (!error && data && data.length > 0) {
+          setLocalData(STORAGE_KEYS.VISITOR_LOGS, data as VisitorLog[]);
+          return data as VisitorLog[];
+        }
+      } catch (err) {
+        console.warn('Falling back to local visitor_logs:', err);
+      }
+    }
+    return getLocalData<VisitorLog[]>(STORAGE_KEYS.VISITOR_LOGS, []);
+  },
+
+  async deleteVisitorLog(id: string): Promise<void> {
+    const client = getSupabase();
+    if (client) {
+      try {
+        await client.from('visitor_logs').delete().eq('id', id);
+      } catch (err) {
+        console.warn('Supabase delete visitor log skipped:', err);
+      }
+    }
+    const existing = getLocalData<VisitorLog[]>(STORAGE_KEYS.VISITOR_LOGS, []);
+    setLocalData(
+      STORAGE_KEYS.VISITOR_LOGS,
+      existing.filter((item) => item.id !== id)
+    );
+  },
+
+  async clearVisitorLogs(): Promise<void> {
+    const client = getSupabase();
+    if (client) {
+      try {
+        await client.from('visitor_logs').delete().neq('id', '');
+      } catch (err) {
+        console.warn('Supabase clear visitor logs skipped:', err);
+      }
+    }
+    setLocalData(STORAGE_KEYS.VISITOR_LOGS, []);
   },
 
   // --- Contact Inquiries ---

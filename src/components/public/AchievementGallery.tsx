@@ -102,10 +102,13 @@ export const AchievementGallery: React.FC = () => {
                 Auto-Sliding Gallery
               </span>
             </div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight pb-0.5 animate-section-heading">
               {t('achievements.headline')}
             </h2>
-            <p className="mt-2 text-sm text-slate-300 max-w-2xl">
+            <div className="relative w-24 sm:w-32 h-[3px] rounded-full bg-slate-800/90 overflow-hidden mt-2">
+              <div className="animate-heading-beam w-12 h-full bg-gradient-to-r from-transparent via-cyan-400 to-purple-400" />
+            </div>
+            <p className="mt-2.5 text-sm text-slate-300 max-w-2xl">
               {t('achievements.subtitle')}
             </p>
           </div>

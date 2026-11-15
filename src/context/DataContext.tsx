@@ -12,6 +12,7 @@ import {
   SEOSettings,
   WebsiteSettings,
   Achievement,
+  VisitorLog,
 } from '../types';
 import { db } from '../lib/supabase';
 import {
@@ -42,9 +43,13 @@ interface DataContextType {
   testimonials: Testimonial[];
   achievements: Achievement[];
   visitorCount: number;
+  visitorLogs: VisitorLog[];
   inquiries: ContactInquiry[];
   refreshData: () => Promise<void>;
   refreshVisitorCount: () => Promise<void>;
+  refreshVisitorLogs: () => Promise<void>;
+  deleteVisitorLog: (id: string) => Promise<void>;
+  clearVisitorLogs: () => Promise<void>;
   updateProfile: (data: Partial<Profile>) => Promise<void>;
   updateSettings: (data: Partial<WebsiteSettings>) => Promise<void>;
   updateSEO: (data: Partial<SEOSettings>) => Promise<void>;
@@ -84,6 +89,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [testimonials, setTestimonials] = useState<Testimonial[]>(initialTestimonials);
   const [achievements, setAchievements] = useState<Achievement[]>(initialAchievements);
   const [visitorCount, setVisitorCount] = useState<number>(1420);
+  const [visitorLogs, setVisitorLogs] = useState<VisitorLog[]>([]);
   const [inquiries, setInquiries] = useState<ContactInquiry[]>([]);
 
   const refreshVisitorCount = useCallback(async () => {
@@ -92,6 +98,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setVisitorCount(count);
     } catch (err) {
       console.warn('Error refreshing visitor count:', err);
+    }
+  }, []);
+
+  const refreshVisitorLogs = useCallback(async () => {
+    try {
+      const logs = await db.getVisitorLogs();
+      setVisitorLogs(logs);
+    } catch (err) {
+      console.warn('Error refreshing visitor logs:', err);
     }
   }, []);
 
@@ -110,6 +125,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         tst,
         ach,
         vCount,
+        vLogs,
         inq,
       ] = await Promise.all([
         db.getProfile(),
@@ -124,6 +140,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         db.getTestimonials(false),
         db.getAchievements(false),
         db.getVisitorCount(),
+        db.getVisitorLogs(),
         db.getInquiries(),
       ]);
 
@@ -139,6 +156,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (tst) setTestimonials(tst);
       if (ach) setAchievements(ach);
       if (vCount) setVisitorCount(vCount);
+      if (vLogs) setVisitorLogs(vLogs);
       if (inq) setInquiries(inq);
     } catch (err) {
       console.error('Error refreshing data:', err);
@@ -150,12 +168,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     refreshData();
 
-    // Increment visitor count once per browser session
+    // Increment visitor count & capture visitor session analytics once per browser session
     try {
       const hasTracked = sessionStorage.getItem('mahdi_session_tracked');
       if (!hasTracked) {
         sessionStorage.setItem('mahdi_session_tracked', 'true');
         db.incrementVisitorCount().then((count) => setVisitorCount(count));
+        db.logVisitorVisit().then((log) => {
+          if (log) {
+            setVisitorLogs((prev) => [log, ...prev]);
+          }
+        });
       } else {
         db.getVisitorCount().then((count) => setVisitorCount(count));
       }
@@ -280,6 +303,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setInquiries((prev) => prev.filter((item) => item.id !== id));
   };
 
+  const deleteVisitorLog = async (id: string) => {
+    await db.deleteVisitorLog(id);
+    setVisitorLogs((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const clearVisitorLogs = async () => {
+    await db.clearVisitorLogs();
+    setVisitorLogs([]);
+  };
+
   return (
     <DataContext.Provider
       value={{
@@ -296,9 +329,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         testimonials,
         achievements,
         visitorCount,
+        visitorLogs,
         inquiries,
         refreshData,
         refreshVisitorCount,
+        refreshVisitorLogs,
+        deleteVisitorLog,
+        clearVisitorLogs,
         updateProfile,
         updateSettings,
         updateSEO,
